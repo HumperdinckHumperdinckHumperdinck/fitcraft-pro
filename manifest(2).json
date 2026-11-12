@@ -1,0 +1,16 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "FitCraft Pro",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "FitCraft",
+  "start_url": "https://humperdinckhumperdinckhumperdinck.github.io/fitcraft-pro/",
+  "theme_color": "#020617",
+  "description": "Workout app for me",
+  "lang": "en",
+  "categories": [
+    "fitness"
+  ]
+}
