@@ -4,7 +4,7 @@
   "display": "standalone",
   "name": "FitCraft Pro",
   "orientation": "any",
-  "scope": "/",
+  "scope": "https://humperdinckhumperdinckhumperdinck.github.io/fitcraft-pro/",
   "short_name": "FitCraft",
   "start_url": "https://humperdinckhumperdinckhumperdinck.github.io/fitcraft-pro/",
   "theme_color": "#020617",
