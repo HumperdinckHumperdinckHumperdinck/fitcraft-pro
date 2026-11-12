@@ -1,0 +1,2729 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FitCraft Pro - Personalized Workout Tracker</title>
+  
+  <!-- Android & PWA App Metadata for APK Packaging -->
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22FitCraft%20Pro%22%2C%22short_name%22%3A%22FitCraft%22%2C%22start_url%22%3A%22.%2Findex.html%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23020617%22%2C%22theme_color%22%3A%22%23020617%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fplacehold.co%2F512x512%2F2563eb%2Fffffff%3Ftext%3DFC%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-32">
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
+    <div class="max-w-xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-dumbbell text-sm"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-bold text-sm tracking-tight text-white">FitCraft Pro</h1>
+            <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold px-1.5 py-0.2 rounded-full uppercase">Shoulder Guard</span>
+          </div>
+          <p class="text-[10px] text-slate-400">PPL • 194 lbs • Fat Loss & Tone</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons in Header -->
+      <div class="flex items-center gap-1.5">
+        <!-- Compact Session Clock -->
+        <div id="headerTimerWidget" class="hidden sm:flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-xl text-xs font-mono font-bold text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="headerTimerClock">00:00</span>
+        </div>
+
+        <button id="historyBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+          <span class="hidden xs:inline">History</span>
+        </button>
+
+        <button id="gearModalBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-gear text-blue-400"></i>
+          <span class="hidden xs:inline">Gear</span>
+        </button>
+
+        <button id="shuffleWorkoutBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition" title="Shuffle & generate fresh exercise variations">
+          <i class="fa-solid fa-shuffle text-xs"></i>
+          <span class="hidden xs:inline">Shuffle</span>
+        </button>
+
+        <button id="resetWorkoutBtn" class="w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center text-xs transition" title="Clear checked sets for today">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+
+        <button id="finishWorkoutBtn" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1 transition">
+          <i class="fa-solid fa-flag-checkered text-xs"></i>
+          <span>Finish</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-xl mx-auto px-4 py-4 space-y-4">
+
+    <!-- Active Session Stopwatch Widget -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 rounded-2xl border border-slate-800/80 p-3.5 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <i class="fa-solid fa-stopwatch text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Workout Timer</span>
+              <span id="sessionTimerStateBadge" class="text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.2 rounded font-semibold">Not Started</span>
+            </div>
+            <div id="sessionTimerDisplay" class="text-xl font-black text-white font-mono tracking-tight">00:00:00</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button id="startSessionBtn" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-play text-xs"></i>
+            <span id="startSessionBtnText">Start Session</span>
+          </button>
+          <button id="pauseSessionBtn" class="hidden px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition" title="Pause Timer">
+            <i class="fa-solid fa-pause"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workout Split & Duration Controls -->
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 p-3 space-y-3 shadow-sm">
+      <div class="space-y-1">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Workout Split</span>
+          <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-shield-halved text-[9px]"></i> Neutral Grips Enforced
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button data-day="push" class="day-tab-btn py-2.5 px-2 rounded-xl text-xs font-bold text-center border transition border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-600/20">
+            <i class="fa-solid fa-hand-fist mr-1 text-xs"></i> Day 1
+            <span class="block text-[10px] font-normal opacity-90">Push (Chest/Delt/Tri)</span>
+          </button>
+          <button data-day="pull" class="day-tab-btn py-2.5 px-2 rounded-xl text-xs font-bold text-center border transition border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700">
+            <i class="fa-solid fa-arrows-up-to-line mr-1 text-xs"></i> Day 2
+            <span class="block text-[10px] font-normal opacity-75">Pull (Back/Rear/Bi)</span>
+          </button>
+          <button data-day="lower" class="day-tab-btn py-2.5 px-2 rounded-xl text-xs font-bold text-center border transition border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700">
+            <i class="fa-solid fa-bolt mr-1 text-xs"></i> Day 3
+            <span class="block text-[10px] font-normal opacity-75">Lower & Core</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Weekly Variety & Periodization Selector -->
+      <div class="pt-2 border-t border-slate-800/80">
+        <div class="flex items-center justify-between mb-1.5 px-1">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-calendar-week text-blue-400 text-xs"></i>
+            <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Weekly Routine Variation</span>
+          </div>
+          <span id="weekVariantTag" class="text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.2 rounded font-semibold">Phase A • Hypertrophy Focus</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button data-week="1" class="week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-blue-500 bg-blue-600 text-white transition">
+            Week 1 (A)
+          </button>
+          <button data-week="2" class="week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Week 2 (B)
+          </button>
+          <button data-week="3" class="week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Week 3 (C)
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Workout Target Time Adjuster -->
+      <div class="pt-2 border-t border-slate-800/80">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-regular fa-clock text-amber-400 text-xs"></i>
+            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Planned Target:</span>
+            <span id="durationBadge" class="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">45 Minutes</span>
+          </div>
+          <span class="text-[11px] text-slate-400" id="durationSubtext">5 Exercises • High Metabolic Burn</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button data-mins="30" class="time-btn py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition">30m Express</button>
+          <button data-mins="45" class="time-btn py-1.5 rounded-lg text-xs font-semibold border border-amber-500 bg-amber-500/20 text-amber-300 transition">45m Standard</button>
+          <button data-mins="60" class="time-btn py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition">60m Full</button>
+          <button data-mins="75" class="time-btn py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition">75m Max Vol</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Combined Pre-Workout Warm-Up & Cardio Suite -->
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+      <button id="toggleWarmupBtn" class="w-full px-4 py-3 bg-slate-800/70 hover:bg-slate-800 flex items-center justify-between text-left transition">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-person-running"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wide">Warm-Up & Cardio Suite</h2>
+              <span id="warmupBadgeStatus" class="text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.2 rounded font-semibold">Ready</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Cardio Flush (Walk/Run/Bike) + 5-Min Shoulder Capsule Prep</p>
+          </div>
+        </div>
+        <i id="warmupChevron" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
+      </button>
+
+      <div id="warmupContent" class="hidden p-4 space-y-4 border-t border-slate-800 bg-slate-900/60">
+        
+        <!-- Detailed Cardio Warm-up / Flush Section -->
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-gauge-high"></i>
+              </span>
+              <span class="text-xs font-bold text-white uppercase tracking-wide">Cardio Flush & Calorie Burn</span>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-slate-300 font-semibold cursor-pointer">
+              <span>Completed</span>
+              <input type="checkbox" id="cardioCheck" class="w-4 h-4 rounded border-slate-700 text-emerald-500 focus:ring-0 bg-slate-900 cursor-pointer">
+            </label>
+          </div>
+
+          <!-- Activity Selection Pills -->
+          <div class="grid grid-cols-3 gap-2">
+            <button id="cardioTypeWalk" class="cardio-type-btn py-1.5 rounded-lg text-xs font-semibold border border-blue-500 bg-blue-600 text-white flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-person-walking text-xs"></i> Walk
+            </button>
+            <button id="cardioTypeRun" class="cardio-type-btn py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 flex items-center justify-center gap-1.5 hover:bg-slate-700 transition">
+              <i class="fa-solid fa-person-running text-xs"></i> Run
+            </button>
+            <button id="cardioTypeBike" class="cardio-type-btn py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 flex items-center justify-center gap-1.5 hover:bg-slate-700 transition">
+              <i class="fa-solid fa-bicycle text-xs"></i> Bike
+            </button>
+          </div>
+
+          <!-- Dynamic Cardio Metrics Inputs -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div>
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Time (Minutes)</label>
+              <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2 py-1">
+                <input type="number" id="cardioTimeInput" value="10" min="1" max="180" class="w-full bg-transparent text-white font-bold text-xs focus:outline-none">
+                <span class="text-[10px] text-slate-400">min</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Distance</label>
+              <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2 py-1">
+                <input type="number" step="0.05" id="cardioDistInput" placeholder="0.5" class="w-full bg-transparent text-white font-bold text-xs focus:outline-none">
+                <span class="text-[10px] text-slate-400">mi</span>
+              </div>
+            </div>
+            <div id="inclineGroup">
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Incline</label>
+              <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2 py-1">
+                <input type="number" step="0.5" id="cardioInclineInput" placeholder="1.0" class="w-full bg-transparent text-white font-bold text-xs focus:outline-none">
+                <span class="text-[10px] text-slate-400">%</span>
+              </div>
+            </div>
+            <div id="resistanceGroup" class="hidden">
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Resistance Level</label>
+              <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2 py-1">
+                <input type="number" id="cardioResistanceInput" placeholder="5" class="w-full bg-transparent text-white font-bold text-xs focus:outline-none">
+                <span class="text-[10px] text-slate-400">lvl</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Est. Calories Burned</label>
+              <div class="flex items-center bg-slate-800/80 border border-slate-700 rounded-lg px-2 py-1 text-emerald-400 font-bold">
+                <span id="cardioKcalEst">82</span>
+                <span class="text-[10px] text-slate-400 ml-1">kcal (194 lbs)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5-Min Shoulder Prep Section -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-halved text-emerald-400"></i> Shoulder Decompression Routine
+            </span>
+            <span class="text-[10px] text-slate-400">Perform before Push or Pull</span>
+          </div>
+          <div id="mobilityList" class="space-y-2">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Main Workout Section -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+          <span>Targeted Exercises</span>
+          <span id="exerciseCountBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.2 rounded-full">5 Lifts</span>
+        </h2>
+        <span class="text-[11px] text-slate-400 flex items-center gap-1">
+          <i class="fa-solid fa-arrows-left-right text-[10px] text-slate-500"></i> Swipe set left to delete
+        </span>
+      </div>
+
+      <!-- Exercise Cards Container -->
+      <div id="exerciseContainer" class="space-y-3">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Bottom Dynamic Add Exercise Controls -->
+      <div id="bottomAddExerciseControls" class="pt-2 pb-6 space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button id="addSplitExerciseBtn" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border border-blue-500/40 hover:border-blue-500 text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm">
+            <i class="fa-solid fa-plus-circle text-sm"></i>
+            <span id="addSplitBtnLabel">+ Add Push Exercise</span>
+          </button>
+          <button id="addCoreExerciseBtn" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-amber-500/40 hover:border-amber-500 text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm">
+            <i class="fa-solid fa-shield-heart text-sm"></i>
+            <span>+ Add Core Exercise</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Sticky Floating Rest Timer Bar -->
+  <div id="stickyRestBar" class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-3 shadow-2xl transition duration-200">
+    <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="relative w-11 h-11 flex items-center justify-center">
+          <svg class="w-11 h-11 transform -rotate-90">
+            <circle cx="22" cy="22" r="18" stroke="#1e293b" stroke-width="3" fill="transparent" />
+            <circle id="restTimerCircle" cx="22" cy="22" r="18" stroke="#3b82f6" stroke-width="3" fill="transparent" stroke-dasharray="113" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-300" />
+          </svg>
+          <span id="restTimerNumber" class="absolute text-xs font-black text-white font-mono">00</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-white tracking-tight" id="restTimerStatus">Metabolic Rest</span>
+            <span id="audioStatusBadge" class="text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.2 rounded font-medium">Chime ON</span>
+          </div>
+          <p id="restTimerSubtitle" class="text-[11px] text-slate-400 truncate max-w-[180px] xs:max-w-[240px]">45s density rest between sets</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <button id="addRest15Btn" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          +15s
+        </button>
+        <button id="skipRestBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          Skip
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video & Form Guide Modal -->
+  <div id="videoModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center text-xs">
+            <i class="fa-brands fa-youtube"></i>
+          </div>
+          <h3 id="videoModalTitle" class="text-sm font-bold text-white truncate max-w-[260px]">Exercise Technique Guide</h3>
+        </div>
+        <button id="closeVideoModalBtn" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-4">
+        <!-- Visual Muscle Anatomical Diagram -->
+        <div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wide text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-child text-blue-400"></i> Muscle Diagram
+            </span>
+            <div class="flex items-center gap-3 text-[10px] font-semibold">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Primary Muscle</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Secondary / Assisting</span>
+            </div>
+          </div>
+          
+          <!-- Dynamic Body Muscle SVG Container -->
+          <div id="muscleDiagramSvgContainer" class="w-full flex items-center justify-center py-2 bg-slate-900/80 rounded-xl border border-slate-800/80">
+            <!-- Rendered via JS -->
+          </div>
+          
+          <div id="simpleMuscleLegend" class="grid grid-cols-2 gap-2 pt-1 text-xs">
+            <div class="p-2 rounded-lg bg-rose-950/40 border border-rose-800/40">
+              <span class="text-[10px] text-rose-400 uppercase font-bold block">Main Target:</span>
+              <span id="primaryMusclePlain" class="font-bold text-white">Chest</span>
+            </div>
+            <div class="p-2 rounded-lg bg-amber-950/40 border border-amber-800/40">
+              <span class="text-[10px] text-amber-400 uppercase font-bold block">Helpers / Secondary:</span>
+              <span id="secondaryMusclePlain" class="font-bold text-white">Triceps & Front Shoulders</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 text-center space-y-3">
+          <div class="w-12 h-12 mx-auto rounded-full bg-red-600/20 text-red-500 border border-red-500/30 flex items-center justify-center text-xl shadow-lg shadow-red-500/10">
+            <i class="fa-brands fa-youtube"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-white text-sm" id="videoPromptHeading">Watch Form Demonstration</h4>
+            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              Tap below to view full video execution with verified neutral grip and shoulder-safe biomechanics.
+            </p>
+          </div>
+          <div class="pt-1 flex flex-col sm:flex-row gap-2 justify-center">
+            <a id="directYoutubeLink" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition shadow-md shadow-red-600/30">
+              <i class="fa-brands fa-youtube text-sm"></i>
+              <span>Watch on YouTube</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+            <a id="searchYoutubeLink" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              <span>Search More Demos</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="rounded-xl bg-slate-800/60 border border-slate-700/60 p-3 space-y-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-amber-400">
+            <i class="fa-solid fa-bullseye"></i>
+            <span>Where You Should Feel It (Plain English)</span>
+          </div>
+          <p id="modalMusclesFelt" class="text-xs text-slate-300 leading-relaxed"></p>
+        </div>
+
+        <div class="rounded-xl bg-emerald-950/40 border border-emerald-700/50 p-3 space-y-1.5">
+          <div class="flex items-center gap-2 text-xs font-bold text-emerald-300">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Shoulder Bursitis & Calcification Instruction</span>
+          </div>
+          <p id="modalShoulderCue" class="text-xs text-emerald-200/90 leading-relaxed"></p>
+        </div>
+
+        <div class="space-y-1.5">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Step-by-Step Execution:</span>
+          <ul id="modalStepList" class="text-xs text-slate-400 space-y-1 list-disc pl-4 leading-relaxed">
+          </ul>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-900 border-t border-slate-800 flex justify-end">
+        <button id="closeVideoModalBtn2" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition">
+          Got it
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart Swap Modal -->
+  <div id="swapModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-repeat text-amber-400"></i> Smart Swap Alternative
+          </h3>
+          <p class="text-[11px] text-slate-400">Showing shoulder-safe substitutes for your equipment</p>
+        </div>
+        <button id="closeSwapModalBtn" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div id="swapListContainer" class="p-4 overflow-y-auto space-y-2.5">
+        <!-- Swaps injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Exercise Picker Modal -->
+  <div id="addExerciseModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 id="addExerciseModalTitle" class="text-sm font-bold text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle text-blue-400"></i> Add Exercise
+          </h3>
+          <p id="addExerciseModalSubtitle" class="text-[11px] text-slate-400">Select an exercise to add to today's active session</p>
+        </div>
+        <button id="closeAddExerciseModalBtn" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div id="addExerciseListContainer" class="p-4 overflow-y-auto space-y-2.5">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Equipment Toggle Modal -->
+  <div id="gearModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-dumbbell text-blue-400"></i> My Gym Gear Inventory
+          </h3>
+          <p class="text-[11px] text-slate-400">Toggle equipment on/off to adapt workout logic</p>
+        </div>
+        <button id="closeGearModalBtn" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div id="gearListContainer" class="p-4 overflow-y-auto space-y-2.5">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div class="p-3 bg-slate-900 border-t border-slate-800 flex justify-between items-center text-xs">
+        <span class="text-slate-400 text-[11px]">Auto-recalibrates exercise bank</span>
+        <button id="saveGearBtn" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-white transition">
+          Apply & Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workout History Archive Modal -->
+  <div id="historyModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Completed Workout History
+          </h3>
+          <p class="text-[11px] text-slate-400">Saved sessions, sets, weights, and cardio</p>
+        </div>
+        <button id="closeHistoryModalBtn" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="px-4 pt-3 flex justify-between items-center">
+        <span class="text-xs text-slate-400">Session Log Archive</span>
+        <button id="addManualWorkoutBtn" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-lg border border-slate-700 transition">
+          <i class="fa-solid fa-plus text-[10px]"></i> Add Past Workout
+        </button>
+      </div>
+
+      <!-- Add Manual Past Workout Form (Collapsible) -->
+      <div id="manualWorkoutForm" class="hidden mx-4 my-2 p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+        <span class="font-bold text-slate-200 block">Record Past Session</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="manualDateInput" placeholder="Date (e.g. Nov 11)" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-white">
+          <select id="manualDayInput" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-white">
+            <option value="PUSH">Push Day</option>
+            <option value="PULL">Pull Day</option>
+            <option value="LOWER">Lower & Core</option>
+          </select>
+        </div>
+        <textarea id="manualDetailsInput" rows="2" placeholder="e.g. Incline DB Press: 35 lbs x 10, Flat Bench: 95 lbs x 8" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-xs"></textarea>
+        <div class="flex justify-end gap-2 pt-1">
+          <button id="cancelManualBtn" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300">Cancel</button>
+          <button id="saveManualBtn" class="px-3 py-1 rounded-lg bg-blue-600 text-white font-bold">Save into History</button>
+        </div>
+      </div>
+
+      <div id="historyListContainer" class="p-4 overflow-y-auto space-y-3">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audio Context Setup with Tone.js
+    let toneStarted = false;
+    function initToneAudio() {
+      if (!toneStarted && window.Tone) {
+        Tone.start();
+        toneStarted = true;
+      }
+    }
+
+    function playChime() {
+      try {
+        if (!toneStarted && window.Tone) Tone.start();
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.volume.value = -6;
+        const now = Tone.now();
+        synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", now);
+      } catch (err) {
+        console.warn("Audio chime prevented by browser policy", err);
+      }
+    }
+
+    // Equipment Configuration
+    const defaultEquipment = {
+      powerblocks: { name: "PowerBlock DB Set (5-50 lbs)", enabled: true, icon: "fa-solid fa-dumbbell" },
+      olympicBar: { name: "300 lb Olympic Bar & Plates", enabled: true, icon: "fa-solid fa-weight-hanging" },
+      squatBenchRack: { name: "Squat Rack & Incline Bench", enabled: true, icon: "fa-solid fa-bars" },
+      highPulley: { name: "Overhead Cable Pulley System", enabled: true, icon: "fa-solid fa-arrow-down-up-across-line" },
+      lowPulley: { name: "Low Cable Pulley (2nd Wheel Mount)", enabled: false, icon: "fa-solid fa-anchor" },
+      legDeveloper: { name: "Bench Leg Extension/Curl Unit", enabled: true, icon: "fa-solid fa-socks" },
+      kettlebell: { name: "16 lb Kettlebell", enabled: true, icon: "fa-solid fa-ring" },
+      medBall: { name: "8 lb Medicine Ball", enabled: true, icon: "fa-solid fa-baseball" },
+      yogaBall: { name: "Stability / Yoga Ball", enabled: true, icon: "fa-solid fa-circle" }
+    };
+
+    // Shoulder Mobility Protocol
+    const shoulderPrepExercises = [
+      {
+        id: "kb_halos",
+        name: "16 lb Kettlebell / Med Ball Halos",
+        reps: "8 clockwise + 8 counter-clockwise",
+        cue: "Decompresses subacromial space; keep ribs pinned down.",
+        youtubeQuery: "kettlebell halo form shoulder mobility"
+      },
+      {
+        id: "doorframe_stretch",
+        name: "Doorframe Pec & Bicep Decompression",
+        reps: "30s each arm (gentle)",
+        cue: "No hard pinching; open chest gently before pressing.",
+        youtubeQuery: "doorway chest stretch shoulder safe"
+      },
+      {
+        id: "high_rope_face_pulls",
+        name: "Light Overhead Cable Face Pulls",
+        reps: "1 set of 15 reps (very light)",
+        cue: "High-to-face angle lubricates rotator cuff and rear delts.",
+        youtubeQuery: "face pull rope athlean x"
+      },
+      {
+        id: "yoga_ball_thoracic",
+        name: "Thoracic Extension on Stability Ball",
+        reps: "30-45 seconds draped over ball",
+        cue: "Extends thoracic spine so shoulders don't round forward.",
+        youtubeQuery: "thoracic extension exercise ball"
+      }
+    ];
+
+    // Master Exercise Catalog
+    const exerciseDatabase = [
+      {
+        id: "incline_db_press",
+        day: "push",
+        category: "horizontal_press",
+        name: "Incline Neutral-Grip DB Press",
+        equipment: ["powerblocks", "squatBenchRack"],
+        targetMuscles: "Upper Chest (Clavicular), Front Delts, Triceps",
+        primaryMuscle: "Chest",
+        primarySvgKey: "chest",
+        secondarySvgKey: ["front_delts", "triceps"],
+        plainPrimary: "Upper Chest (Pectorals)",
+        plainSecondary: "Front Shoulders & Triceps",
+        feelIt: "Upper chest shelf and front of armpit. If you feel front shoulder pinch, tuck elbows closer to 30°.",
+        shoulderSafety: "Keep palms angled at 45° (semi-neutral) or facing each other. Do not let elbows flare 90°.",
+        formChecklist: ["Bench angled at 15°–30° (not too steep)", "Palms facing 45° inwards", "Lower with control until dumbbells touch chest level", "Press up without clacking weights"],
+        defaultReps: "10-12",
+        tempo: "3-0-1-0",
+        youtubeQuery: "Neutral grip incline dumbbell press proper form"
+      },
+      {
+        id: "barbell_bench_tucked",
+        day: "push",
+        category: "horizontal_press",
+        name: "Flat Barbell Bench (Elbows Tucked 45°)",
+        equipment: ["olympicBar", "squatBenchRack"],
+        targetMuscles: "Mid & Lower Chest, Front Delts, Triceps",
+        primaryMuscle: "Chest",
+        primarySvgKey: "chest",
+        secondarySvgKey: ["front_delts", "triceps"],
+        plainPrimary: "Mid & Lower Chest",
+        plainSecondary: "Front Shoulders & Arms",
+        feelIt: "Mid-chest pectorals and triceps. Should not pinch in the front acromion bone.",
+        shoulderSafety: "Do not flare elbows wide. Retract and depress shoulder blades into the bench.",
+        formChecklist: ["Shoulder blades pinched tight together", "Elbows tucked 45° to torso", "Lower bar to sternum", "Drive feet into floor"],
+        defaultReps: "8-10",
+        tempo: "2-1-1-0",
+        youtubeQuery: "Barbell bench press shoulder safe elbows tucked"
+      },
+      {
+        id: "seated_neutral_db_press",
+        day: "push",
+        category: "vertical_press",
+        name: "Seated Neutral-Grip DB Shoulder Press",
+        equipment: ["powerblocks", "squatBenchRack"],
+        targetMuscles: "Anterior Deltoids, Lateral Deltoids, Triceps",
+        primaryMuscle: "Shoulders",
+        primarySvgKey: "delts",
+        secondarySvgKey: ["triceps", "upper_chest"],
+        plainPrimary: "Front & Side Shoulders",
+        plainSecondary: "Back of Arms (Triceps)",
+        feelIt: "Front and middle shoulder caps. Zero subacromial friction due to neutral palms.",
+        shoulderSafety: "Palms face each other throughout. Keep elbows slightly in front of the body in scapular plane.",
+        formChecklist: ["Back supported on upright bench", "Palms strictly facing each other", "Press straight up overhead", "Lower slowly to ear level"],
+        defaultReps: "10-12",
+        tempo: "3-0-1-0",
+        youtubeQuery: "Neutral grip dumbbell shoulder press form"
+      },
+      {
+        id: "scapular_lateral_raise",
+        day: "push",
+        category: "shoulder_isolation",
+        name: "Scapular Plane DB Lateral Raise",
+        equipment: ["powerblocks"],
+        targetMuscles: "Lateral Deltoids (Side Shoulders)",
+        primaryMuscle: "Shoulders",
+        primarySvgKey: "delts",
+        secondarySvgKey: ["traps"],
+        plainPrimary: "Side Shoulders (Cap)",
+        plainSecondary: "Upper Traps / Neck Base",
+        feelIt: "Side shoulder burn. Keep thumbs slightly higher than pinkies (don't pour out a pitcher).",
+        shoulderSafety: "Raise arms 30° forward from direct sides (scapular plane). Avoid internal shoulder rotation.",
+        formChecklist: ["Slight forward lean of torso", "Raise 30° forward of direct side plane", "Lead with elbows, thumbs slightly higher than pinkies", "Pause 1s at top"],
+        defaultReps: "12-15",
+        tempo: "2-1-2-1",
+        youtubeQuery: "Scapular plane lateral raise shoulder safe"
+      },
+      {
+        id: "cable_rope_pushdown",
+        day: "push",
+        category: "triceps",
+        name: "High Cable Tricep Rope Pushdowns",
+        equipment: ["highPulley"],
+        targetMuscles: "Triceps (Lateral and Long Head)",
+        primaryMuscle: "Triceps",
+        primarySvgKey: "triceps",
+        secondarySvgKey: ["forearms"],
+        plainPrimary: "Triceps (Back of Arm)",
+        plainSecondary: "Forearms & Grip",
+        feelIt: "Back of the upper arms. Spread the rope apart at bottom for peak contraction.",
+        shoulderSafety: "Pin elbows tight to ribs; do not swing shoulders forward to initiate.",
+        formChecklist: ["Stand tall with slight forward hinge", "Elbows glued to side of ribs", "Spread rope ends apart at lockout", "Control the return to 90° bend"],
+        defaultReps: "12-15",
+        tempo: "2-0-1-1",
+        youtubeQuery: "Tricep rope pushdown form Athlean X"
+      },
+      {
+        id: "db_floor_press",
+        day: "push",
+        category: "horizontal_press",
+        name: "Dumbbell Floor Press (Shoulder Deload)",
+        equipment: ["powerblocks"],
+        targetMuscles: "Pectorals, Triceps Brachii",
+        primaryMuscle: "Chest",
+        primarySvgKey: "chest",
+        secondarySvgKey: ["triceps"],
+        plainPrimary: "Chest (Pecs)",
+        plainSecondary: "Triceps",
+        feelIt: "Chest and triceps. Floor stops the elbows from hyperextending and impinging shoulders.",
+        shoulderSafety: "Top-tier shoulder rehabilitation movement. Floor creates an automatic safety brake.",
+        formChecklist: ["Lie flat on floor with knees bent", "Palms neutral at 45°", "Lower until upper arms touch floor gently", "Explode up"],
+        defaultReps: "10-12",
+        tempo: "2-1-1-0",
+        youtubeQuery: "Dumbbell floor press proper form"
+      },
+      {
+        id: "overhead_db_tricep_ext",
+        day: "push",
+        category: "triceps",
+        name: "Single DB Overhead Tricep Extension",
+        equipment: ["powerblocks"],
+        targetMuscles: "Triceps (Long Head Stretch)",
+        primaryMuscle: "Triceps",
+        primarySvgKey: "triceps",
+        secondarySvgKey: ["core"],
+        plainPrimary: "Triceps (Back of Arm Stretch)",
+        plainSecondary: "Core Stability",
+        feelIt: "Deep stretch along back of upper arm near shoulder joint.",
+        shoulderSafety: "Hold one dumbbell with both hands; keep elbows in rather than flaring out.",
+        formChecklist: ["Grip dumbbell under top plate", "Keep elbows pointing mostly forward", "Full tricep stretch at bottom", "Lock out triceps at top"],
+        defaultReps: "12-15",
+        tempo: "3-0-1-0",
+        youtubeQuery: "Seated dumbbell overhead tricep extension"
+      },
+      {
+        id: "high_pulley_lat_pulldown",
+        day: "pull",
+        category: "vertical_pull",
+        name: "High Cable Lat Pulldown (Dual Handles/Bar)",
+        equipment: ["highPulley"],
+        targetMuscles: "Latissimus Dorsi, Teres Major, Biceps",
+        primaryMuscle: "Lats / Back",
+        primarySvgKey: "lats",
+        secondarySvgKey: ["biceps", "rear_delts"],
+        plainPrimary: "Lats (Wings of Back)",
+        plainSecondary: "Biceps & Rear Shoulders",
+        feelIt: "Wings of your back (under armpits) pulling down to your back pockets.",
+        shoulderSafety: "Dual D-handles allow wrist rotation to protect subacromial space. Pull to upper collarbone.",
+        formChecklist: ["Sit or kneel under pulley", "Drive elbows down towards hips", "Chest tall with slight lean back", "Never pull behind the neck"],
+        defaultReps: "10-12",
+        tempo: "2-1-1-1",
+        youtubeQuery: "Lat pulldown proper form Athlean X"
+      },
+      {
+        id: "chest_supported_db_row",
+        day: "pull",
+        category: "horizontal_pull",
+        name: "Chest-Supported Incline DB Row",
+        equipment: ["powerblocks", "squatBenchRack"],
+        targetMuscles: "Rhomboids, Mid-Trapezius, Latissimus Dorsi",
+        primaryMuscle: "Upper Back",
+        primarySvgKey: "upper_back",
+        secondarySvgKey: ["biceps", "rear_delts"],
+        plainPrimary: "Upper Back & Between Shoulder Blades",
+        plainSecondary: "Biceps & Rear Shoulders",
+        feelIt: "Upper mid-back between shoulder blades. Chest support eliminates lower back momentum.",
+        shoulderSafety: "Neutral palms reduce impingement. Pull elbows past torso without shrugging traps up to ears.",
+        formChecklist: ["Chest flat against 30° incline bench", "Arms hang down, palms neutral", "Drive elbows toward ceiling", "Squeeze shoulder blades 1 full second"],
+        defaultReps: "10-12",
+        tempo: "2-1-1-1",
+        youtubeQuery: "Chest supported dumbbell row Renaissance Periodization"
+      },
+      {
+        id: "straight_arm_pulldown",
+        day: "pull",
+        category: "lat_isolation",
+        name: "Kneeling Straight-Arm Cable Pulldown",
+        equipment: ["highPulley"],
+        targetMuscles: "Latissimus Dorsi (Pure Isolation), Triceps Long Head",
+        primaryMuscle: "Lats / Back",
+        primarySvgKey: "lats",
+        secondarySvgKey: ["triceps", "core"],
+        plainPrimary: "Lats (Outer Back)",
+        plainSecondary: "Abs & Upper Arms",
+        feelIt: "Outer lats without any bicep or forearm takeover.",
+        shoulderSafety: "Zero bicep tendon friction or shoulder compression. Excellent metabolic finisher.",
+        formChecklist: ["Kneel facing pulley", "Arms extended with slight soft elbow bend", "Sweep bar/rope down toward thighs", "Squeeze lats hard at bottom"],
+        defaultReps: "12-15",
+        tempo: "2-1-1-1",
+        youtubeQuery: "Straight arm lat pulldown form"
+      },
+      {
+        id: "overhead_cable_face_pull",
+        day: "pull",
+        category: "rear_delt_rotator",
+        name: "Cable Face Pull with External Rotation",
+        equipment: ["highPulley"],
+        targetMuscles: "Rear Deltoids, Infraspinatus, Teres Minor, Lower Traps",
+        primaryMuscle: "Rotator Cuff / Rear Delts",
+        primarySvgKey: "rear_delts",
+        secondarySvgKey: ["upper_back", "traps"],
+        plainPrimary: "Rear Shoulders & Rotator Cuff",
+        plainSecondary: "Upper Spine & Traps",
+        feelIt: "Back of the shoulders and upper spine. Gold-standard rehabilitation for bursitis.",
+        shoulderSafety: "Directly counteracts forward rounded shoulders. Drive thumbs backward past ears.",
+        formChecklist: ["Set pulley at eye/overhead level", "Thumbs pointed back towards ears", "Pull rope to nose bridge", "Externally rotate wrists at peak contraction"],
+        defaultReps: "15",
+        tempo: "2-1-1-2",
+        youtubeQuery: "Cable face pull Athlean X form"
+      },
+      {
+        id: "preacher_curls",
+        day: "pull",
+        category: "biceps",
+        name: "Incline Preacher Curl (Barbell / DB)",
+        equipment: ["squatBenchRack", "olympicBar", "powerblocks"],
+        targetMuscles: "Biceps Brachii (Short Head & Brachialis)",
+        primaryMuscle: "Biceps",
+        primarySvgKey: "biceps",
+        secondarySvgKey: ["forearms"],
+        plainPrimary: "Biceps (Front of Arm)",
+        plainSecondary: "Forearms",
+        feelIt: "Front peak of upper arm. Armpad locks shoulder in place preventing front delt swinging.",
+        shoulderSafety: "Prevents front delt substitution common with standing barbell curls.",
+        formChecklist: ["Armpits locked over top of preacher pad", "Curl bar smoothly up", "Do not jerk torso backwards", "Lower slowly but don't hyper-extend elbow at bottom"],
+        defaultReps: "10-12",
+        tempo: "3-0-1-0",
+        youtubeQuery: "Preacher curl proper form"
+      },
+      {
+        id: "cable_bicep_curl_high",
+        day: "pull",
+        category: "biceps",
+        name: "High Cable Overhead Bicep Curls",
+        equipment: ["highPulley"],
+        targetMuscles: "Biceps Brachii (Peak Contraction)",
+        primaryMuscle: "Biceps",
+        primarySvgKey: "biceps",
+        secondarySvgKey: ["forearms"],
+        plainPrimary: "Bicep Peak",
+        plainSecondary: "Forearms",
+        feelIt: "Peak of biceps at full squeeze. Overhead angle protects shoulders from swinging.",
+        shoulderSafety: "Arms stabilized in scapular plane; continuous cable tension.",
+        formChecklist: ["Hold D-handles facing away or toward forehead", "Curl knuckles back toward temples", "Squeeze bicep 1s at peak"],
+        defaultReps: "12-15",
+        tempo: "2-1-1-1",
+        youtubeQuery: "overhead cable bicep curl form"
+      },
+      {
+        id: "single_arm_db_row",
+        day: "pull",
+        category: "horizontal_pull",
+        name: "Single-Arm DB Row (Bench Supported)",
+        equipment: ["powerblocks", "squatBenchRack"],
+        targetMuscles: "Lats, Rhomboids, Biceps",
+        primaryMuscle: "Lats / Back",
+        primarySvgKey: "lats",
+        secondarySvgKey: ["biceps", "upper_back"],
+        plainPrimary: "Side Back (Lats)",
+        plainSecondary: "Biceps & Upper Back",
+        feelIt: "Lower lat on pulling side. Pull toward hip, not up into chest.",
+        shoulderSafety: "One knee and hand supported on flat bench protects lumbar spine.",
+        formChecklist: ["Flat spine parallel to floor", "Pull dumbbell in a slight J-curve toward hip", "Avoid torso twisting at top"],
+        defaultReps: "10-12",
+        tempo: "2-1-1-0",
+        youtubeQuery: "Single arm dumbbell row form"
+      },
+      {
+        id: "db_hammer_curl",
+        day: "pull",
+        category: "biceps",
+        name: "PowerBlock Hammer Curls (Neutral Grip)",
+        equipment: ["powerblocks"],
+        targetMuscles: "Brachialis, Brachioradialis, Biceps",
+        primaryMuscle: "Biceps",
+        primarySvgKey: "biceps",
+        secondarySvgKey: ["forearms"],
+        plainPrimary: "Outer Bicep & Arm Thickness",
+        plainSecondary: "Forearms & Grip",
+        feelIt: "Outer bicep and thick upper forearm.",
+        shoulderSafety: "Neutral palms are the most elbow- and shoulder-friendly bicep variation.",
+        formChecklist: ["Palms facing each other", "Keep elbows fixed by sides", "Curl smoothly to chest height"],
+        defaultReps: "12-15",
+        tempo: "2-0-1-0",
+        youtubeQuery: "Dumbbell hammer curl form"
+      },
+      {
+        id: "barbell_back_squat",
+        day: "lower",
+        category: "quad_dominant",
+        name: "Olympic Barbell Back Squat (Wide Grip)",
+        equipment: ["olympicBar", "squatBenchRack"],
+        targetMuscles: "Quadriceps, Glutes, Hamstrings, Core",
+        primaryMuscle: "Quads & Glutes",
+        primarySvgKey: "quads",
+        secondarySvgKey: ["glutes", "hamstrings", "core"],
+        plainPrimary: "Front Thighs (Quads) & Glutes",
+        plainSecondary: "Back Thighs & Core Bracing",
+        feelIt: "Full thighs and glutes. Push floor away through mid-foot.",
+        shoulderSafety: "Take a wide hand grip on the bar to avoid stretching calcified shoulder caps.",
+        formChecklist: ["Hands spaced comfortably wide on bar", "Break at hips and knees simultaneously", "Squat to parallel or comfortable depth", "Drive knees out in line with toes"],
+        defaultReps: "8-10",
+        tempo: "3-0-1-0",
+        youtubeQuery: "Barbell back squat proper form Squat University"
+      },
+      {
+        id: "bulgarian_split_squat",
+        day: "lower",
+        category: "quad_dominant",
+        name: "PowerBlock DB Bulgarian Split Squat",
+        equipment: ["powerblocks", "squatBenchRack"],
+        targetMuscles: "Quads, Glutes, Hamstrings, Hip Stabilizers",
+        primaryMuscle: "Quads & Glutes",
+        primarySvgKey: "quads",
+        secondarySvgKey: ["glutes", "hamstrings", "core"],
+        plainPrimary: "Front Quad & Deep Glute",
+        plainSecondary: "Hip Stabilizers",
+        feelIt: "Intense unilateral burn in front quad and deep glute pocket. High caloric expenditure.",
+        shoulderSafety: "Weights held hanging at sides; zero spinal compression or shoulder loading.",
+        formChecklist: ["Rear foot rested laces-down on flat bench", "Descend with front knee tracking over midfoot", "Drive up through front heel", "Slight forward torso pitch"],
+        defaultReps: "10-12 / leg",
+        tempo: "2-1-1-0",
+        youtubeQuery: "Bulgarian split squat dumbbell proper form"
+      },
+      {
+        id: "romanian_deadlift",
+        day: "lower",
+        category: "hip_hinge",
+        name: "Barbell Romanian Deadlift (RDL)",
+        equipment: ["olympicBar"],
+        targetMuscles: "Hamstrings, Gluteus Maximus, Lower Back",
+        primaryMuscle: "Hamstrings & Glutes",
+        primarySvgKey: "hamstrings",
+        secondarySvgKey: ["glutes", "lower_back"],
+        plainPrimary: "Hamstrings (Back of Thighs)",
+        plainSecondary: "Glutes & Lower Back",
+        feelIt: "Deep stretch in back of thighs (hamstrings) as hips slide backward.",
+        shoulderSafety: "Arms act strictly as cables; zero shoulder strain. Keep bar sliding along thighs.",
+        formChecklist: ["Slight bend in knees", "Push hips straight backward towards wall", "Keep bar grazing thighs and shins", "Squeeze glutes to stand"],
+        defaultReps: "8-10",
+        tempo: "3-1-1-0",
+        youtubeQuery: "Barbell Romanian deadlift form"
+      },
+      {
+        id: "leg_extension_burn",
+        day: "lower",
+        category: "quad_isolation",
+        name: "Bench Leg Extension (Metabolic Tone)",
+        equipment: ["legDeveloper", "squatBenchRack", "olympicBar"],
+        targetMuscles: "Quadriceps (Rectus Femoris, Vastus Lateralis)",
+        primaryMuscle: "Quads",
+        primarySvgKey: "quads",
+        secondarySvgKey: [],
+        plainPrimary: "Front Thighs (Quads)",
+        plainSecondary: "Knee Stability",
+        feelIt: "Front of thighs on fire. High calorie burn and definition.",
+        shoulderSafety: "Completely isolates lower body; 0% upper body strain.",
+        formChecklist: ["Back supported against bench", "Kick up smoothly, pause 1s at top", "Slow 3-second descent"],
+        defaultReps: "12-15",
+        tempo: "3-1-1-1",
+        youtubeQuery: "Leg extension machine proper form"
+      },
+      {
+        id: "lying_leg_curl",
+        day: "lower",
+        category: "hamstring_isolation",
+        name: "Leg Curl on Bench Attachment",
+        equipment: ["legDeveloper", "squatBenchRack", "olympicBar"],
+        targetMuscles: "Hamstrings (Knee Flexion)",
+        primaryMuscle: "Hamstrings",
+        primarySvgKey: "hamstrings",
+        secondarySvgKey: ["calves"],
+        plainPrimary: "Hamstrings (Back of Knee)",
+        plainSecondary: "Calves",
+        feelIt: "Back of knees and hamstring belly.",
+        shoulderSafety: "Zero shoulder involvement.",
+        formChecklist: ["Anchor ankles under roller pad", "Curl heels towards buttocks", "Hold peak squeeze 1 second", "Lower with control"],
+        defaultReps: "12-15",
+        tempo: "3-1-1-0",
+        youtubeQuery: "Lying leg curl proper form"
+      },
+      {
+        id: "kb_hip_hinge_swings",
+        day: "lower",
+        category: "conditioning_hinge",
+        name: "16 lb Kettlebell Russian Swings",
+        equipment: ["kettlebell"],
+        targetMuscles: "Glutes, Hamstrings, Core, Cardiovascular System",
+        primaryMuscle: "Glutes & Conditioning",
+        primarySvgKey: "glutes",
+        secondarySvgKey: ["hamstrings", "core"],
+        plainPrimary: "Glutes & Hips (Cardio Burn)",
+        plainSecondary: "Hamstrings & Deep Abs",
+        feelIt: "Glute snap and elevated heart rate for maximum caloric burn.",
+        shoulderSafety: "Keep swing below shoulder level (Russian height). Do not pull with arms.",
+        formChecklist: ["Snap hips forward with power", "Arms are merely ropes guiding the bell", "Float bell to chest height, never overhead", "Inhale down, exhale on explosive snap"],
+        defaultReps: "15-20",
+        tempo: "Explosive",
+        youtubeQuery: "Russian kettlebell swing form"
+      },
+      {
+        id: "goblet_squat_db",
+        day: "lower",
+        category: "quad_dominant",
+        name: "PowerBlock DB Goblet Squat",
+        equipment: ["powerblocks"],
+        targetMuscles: "Quads, Adductors, Core",
+        primaryMuscle: "Quads & Glutes",
+        primarySvgKey: "quads",
+        secondarySvgKey: ["glutes", "core"],
+        plainPrimary: "Quads & Inner Thighs",
+        plainSecondary: "Glutes & Ab Bracing",
+        feelIt: "Front quads and core bracing. Eliminates any need to reach back onto a barbell.",
+        shoulderSafety: "Hug dumbbell vertically close to chest; avoids any rear shoulder impingement.",
+        formChecklist: ["Hold dumbbell vertical under palm cups", "Elbows tucked between knees at bottom", "Chest tall throughout"],
+        defaultReps: "10-12",
+        tempo: "3-0-1-0",
+        youtubeQuery: "Dumbbell goblet squat form"
+      },
+      {
+        id: "yoga_ball_plank_stir",
+        day: "lower",
+        category: "core",
+        name: "Yoga Ball Planks / 'Stir the Pot'",
+        equipment: ["yogaBall"],
+        targetMuscles: "Transverse Abdominis, Obliques, Serratus Anterior",
+        primaryMuscle: "Core & Abs",
+        primarySvgKey: "core",
+        secondarySvgKey: ["delts"],
+        plainPrimary: "Deep Core & Waistline Abs",
+        plainSecondary: "Shoulder Stabilizers",
+        feelIt: "Deep corset abs vibrating to hold stability on the ball.",
+        shoulderSafety: "Forearms grounded on ball; promotes healthy scapular protraction without joint loading.",
+        formChecklist: ["Forearms on center of yoga ball", "Hold solid plank line from head to heels", "Make tiny clockwise circles with forearms", "Reverse direction halfway"],
+        defaultReps: "30-45 sec",
+        tempo: "Isometric",
+        youtubeQuery: "Stir the pot on exercise ball core workout"
+      },
+      {
+        id: "high_cable_woodchopper",
+        day: "core",
+        category: "core",
+        name: "High Cable Diagonal Woodchopper",
+        equipment: ["highPulley"],
+        targetMuscles: "Obliques, Rotational Core, Transverse Abdominis",
+        primaryMuscle: "Core & Abs",
+        primarySvgKey: "core",
+        secondarySvgKey: ["delts"],
+        plainPrimary: "Side Obliques & Rotational Core",
+        plainSecondary: "Shoulder Stability",
+        feelIt: "Side waistline and rotational abs. Pull across torso from high to low.",
+        shoulderSafety: "Pivot on back foot to rotate hips and torso together; protect shoulders from twisting independently.",
+        formChecklist: ["Arms extended with slight soft bend", "Rotate from torso, not arms", "Pivot rear foot", "Hold 1s at bottom hip"],
+        defaultReps: "12-15 / side",
+        tempo: "2-0-1-1",
+        youtubeQuery: "High to low cable woodchop form"
+      },
+      {
+        id: "med_ball_russian_twists",
+        day: "core",
+        category: "core",
+        name: "8 lb Medicine Ball Russian Twists",
+        equipment: ["medBall"],
+        targetMuscles: "Obliques, Rectus Abdominis",
+        primaryMuscle: "Core & Abs",
+        primarySvgKey: "core",
+        secondarySvgKey: ["hip_flexors"],
+        plainPrimary: "Side Obliques & Waistline",
+        plainSecondary: "Lower Abs",
+        feelIt: "Deep burning in the sides of your stomach.",
+        shoulderSafety: "Hold ball close to sternum. Avoid swinging arms wide.",
+        formChecklist: ["Sit on floor with knees bent at 45°", "Lean back slightly with neutral spine", "Rotate ball smoothly from hip to hip", "Keep ribs braced"],
+        defaultReps: "16-20 total",
+        tempo: "Controlled",
+        youtubeQuery: "Medicine ball Russian twist proper form"
+      },
+      {
+        id: "yoga_ball_crunches",
+        day: "core",
+        category: "core",
+        name: "Stability Ball Ab Crunch (Full Stretch)",
+        equipment: ["yogaBall"],
+        targetMuscles: "Rectus Abdominis (Six Pack)",
+        primaryMuscle: "Core & Abs",
+        primarySvgKey: "core",
+        secondarySvgKey: [],
+        plainPrimary: "Upper & Mid Abs",
+        plainSecondary: "Spinal Extensors",
+        feelIt: "Upper abdominal wall curling tightly over the ball curve.",
+        shoulderSafety: "Fingertips resting lightly on temples; never pull on neck or force elbows in.",
+        formChecklist: ["Lower back supported on curvature of ball", "Inhale deep stretch over ball", "Exhale and curl ribs down to pelvis", "Hold 1s crunch at top"],
+        defaultReps: "15-20",
+        tempo: "2-1-1-1",
+        youtubeQuery: "Stability ball crunch proper form"
+      },
+      {
+        id: "high_cable_kneeling_crunch",
+        day: "core",
+        category: "core",
+        name: "Kneeling Cable Rope Ab Crunch",
+        equipment: ["highPulley"],
+        targetMuscles: "Rectus Abdominis (Upper & Lower)",
+        primaryMuscle: "Core & Abs",
+        primarySvgKey: "core",
+        secondarySvgKey: [],
+        plainPrimary: "Abdominal Wall",
+        plainSecondary: "Serratus",
+        feelIt: "High-density ab contraction pulling ribs down to hip bones.",
+        shoulderSafety: "Hands anchored against head; shoulders stay static while abs do all the curling.",
+        formChecklist: ["Kneel facing pulley or away", "Anchor rope by ears", "Flex spine down curling forehead towards knees", "Do not sit back onto heels"],
+        defaultReps: "15-20",
+        tempo: "2-1-1-1",
+        youtubeQuery: "Kneeling cable crunch form Athlean X"
+      }
+    ];
+
+    // State Management
+    let currentDay = "push";
+    let currentDuration = 45;
+    let currentWeek = parseInt(localStorage.getItem("fitcraft_current_week")) || 1;
+    let userEquipment = JSON.parse(localStorage.getItem("fitcraft_gear")) || defaultEquipment;
+    let savedWorkouts = JSON.parse(localStorage.getItem("fitcraft_log")) || {};
+    let workoutHistory = JSON.parse(localStorage.getItem("fitcraft_history")) || [];
+    let lastLiftedHistory = JSON.parse(localStorage.getItem("fitcraft_last_lifted")) || {};
+    let activeShuffleSeed = parseInt(localStorage.getItem("fitcraft_shuffle_seed")) || 0;
+    let removedExercisesToday = JSON.parse(localStorage.getItem("fitcraft_removed_today")) || {};
+    let addedExercisesToday = JSON.parse(localStorage.getItem("fitcraft_added_today")) || {};
+    let cardioLog = JSON.parse(localStorage.getItem("fitcraft_cardio")) || {
+      type: "walk",
+      time: 10,
+      distance: 0.5,
+      incline: 1.0,
+      resistance: 5,
+      completed: false
+    };
+
+    // Active Session Stopwatch State
+    let sessionElapsedSeconds = parseInt(localStorage.getItem("fitcraft_session_seconds")) || 0;
+    let sessionInterval = null;
+    let isSessionRunning = localStorage.getItem("fitcraft_session_running") === "true";
+
+    // Rest Countdown State
+    let restTimerInterval = null;
+    let restRemaining = 45;
+    let totalRestTime = 45;
+
+    function saveLog() {
+      localStorage.setItem("fitcraft_log", JSON.stringify(savedWorkouts));
+      localStorage.setItem("fitcraft_last_lifted", JSON.stringify(lastLiftedHistory));
+    }
+
+    function saveHistory() {
+      localStorage.setItem("fitcraft_history", JSON.stringify(workoutHistory));
+    }
+
+    // Session Timer Methods
+    function startSessionTimer() {
+      if (sessionInterval) clearInterval(sessionInterval);
+      isSessionRunning = true;
+      localStorage.setItem("fitcraft_session_running", "true");
+      
+      const badge = document.getElementById("sessionTimerStateBadge");
+      const startBtn = document.getElementById("startSessionBtn");
+      const startBtnText = document.getElementById("startSessionBtnText");
+      const pauseBtn = document.getElementById("pauseSessionBtn");
+      const headerWidget = document.getElementById("headerTimerWidget");
+
+      if (badge) {
+        badge.textContent = "In Progress";
+        badge.className = "text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-semibold";
+      }
+      if (startBtnText) startBtnText.textContent = "Resume";
+      if (startBtn) startBtn.classList.add("hidden");
+      if (pauseBtn) pauseBtn.classList.remove("hidden");
+      if (headerWidget) headerWidget.classList.remove("hidden");
+
+      sessionInterval = setInterval(() => {
+        sessionElapsedSeconds++;
+        localStorage.setItem("fitcraft_session_seconds", sessionElapsedSeconds);
+        updateSessionTimerUI();
+      }, 1000);
+    }
+
+    function pauseSessionTimer() {
+      if (sessionInterval) clearInterval(sessionInterval);
+      isSessionRunning = false;
+      localStorage.setItem("fitcraft_session_running", "false");
+
+      const badge = document.getElementById("sessionTimerStateBadge");
+      const startBtn = document.getElementById("startSessionBtn");
+      const pauseBtn = document.getElementById("pauseSessionBtn");
+
+      if (badge) {
+        badge.textContent = "Paused";
+        badge.className = "text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.2 rounded font-semibold";
+      }
+      if (startBtn) startBtn.classList.remove("hidden");
+      if (pauseBtn) pauseBtn.classList.add("hidden");
+    }
+
+    function resetSessionTimer() {
+      if (sessionInterval) clearInterval(sessionInterval);
+      sessionElapsedSeconds = 0;
+      isSessionRunning = false;
+      localStorage.removeItem("fitcraft_session_seconds");
+      localStorage.setItem("fitcraft_session_running", "false");
+
+      const badge = document.getElementById("sessionTimerStateBadge");
+      const startBtn = document.getElementById("startSessionBtn");
+      const startBtnText = document.getElementById("startSessionBtnText");
+      const pauseBtn = document.getElementById("pauseSessionBtn");
+
+      if (badge) {
+        badge.textContent = "Not Started";
+        badge.className = "text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.2 rounded font-semibold";
+      }
+      if (startBtnText) startBtnText.textContent = "Start Session";
+      if (startBtn) startBtn.classList.remove("hidden");
+      if (pauseBtn) pauseBtn.classList.add("hidden");
+
+      updateSessionTimerUI();
+    }
+
+    function updateSessionTimerUI() {
+      const display = document.getElementById("sessionTimerDisplay");
+      const headerClock = document.getElementById("headerTimerClock");
+
+      const hrs = Math.floor(sessionElapsedSeconds / 3600);
+      const mins = Math.floor((sessionElapsedSeconds % 3600) / 60);
+      const secs = sessionElapsedSeconds % 60;
+
+      const formatted = `${hrs > 0 ? String(hrs).padStart(2, '0') + ':' : ''}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      if (display) display.textContent = hrs > 0 ? formatted : `00:${formatted}`;
+      if (headerClock) headerClock.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function formatDurationReadable(seconds) {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      if (hrs > 0) return `${hrs}h ${mins}m`;
+      return `${mins}m ${secs}s`;
+    }
+
+    function startRestTimer(seconds = 45, reason = "Metabolic Rest") {
+      if (restTimerInterval) clearInterval(restTimerInterval);
+      totalRestTime = seconds;
+      restRemaining = seconds;
+
+      const numEl = document.getElementById("restTimerNumber");
+      const statusEl = document.getElementById("restTimerStatus");
+      const circleEl = document.getElementById("restTimerCircle");
+
+      if (statusEl) statusEl.textContent = reason;
+      if (numEl) numEl.textContent = restRemaining;
+
+      const circumference = 113; // 2 * PI * 18
+      if (circleEl) circleEl.style.strokeDashoffset = "0";
+
+      restTimerInterval = setInterval(() => {
+        restRemaining--;
+        if (numEl) numEl.textContent = restRemaining < 10 ? `0${restRemaining}` : restRemaining;
+
+        if (circleEl && totalRestTime > 0) {
+          const progress = (totalRestTime - restRemaining) / totalRestTime;
+          circleEl.style.strokeDashoffset = (circumference * progress).toString();
+        }
+
+        if (restRemaining <= 0) {
+          clearInterval(restTimerInterval);
+          if (statusEl) statusEl.textContent = "Rest Complete! Next Set";
+          if (circleEl) circleEl.style.strokeDashoffset = circumference.toString();
+          playChime();
+        }
+      }, 1000);
+    }
+
+    // Exercise Selection and Duration Filtering with Weekly Periodization & Shuffle
+    function getActiveExercisesForSplit(dayKey) {
+      const removedForDay = removedExercisesToday[dayKey] || [];
+      const available = exerciseDatabase.filter(ex => {
+        if (ex.day !== dayKey) return false;
+        if (removedForDay.includes(ex.id)) return false;
+        return ex.equipment.every(reqGear => userEquipment[reqGear]?.enabled);
+      });
+
+      // Weekly rotation prioritization scheme
+      // Week 1 (A): Default balanced foundational compound + cable isolation
+      // Week 2 (B): Unilateral dumbbell emphasis & high-metabolic density swaps
+      // Week 3 (C): Joint-deloading angles (Floor Press, Straight-arm pulldowns, Goblet Squat)
+      let prioritized = [...available];
+
+      if (currentWeek === 2) {
+        // Rotate order by prioritizing unilateral and specialty variants
+        prioritized.sort((a, b) => {
+          const aUni = (a.id.includes("single_arm") || a.id.includes("bulgarian") || a.id.includes("scapular") || a.id.includes("hammer")) ? 1 : 0;
+          const bUni = (b.id.includes("single_arm") || b.id.includes("bulgarian") || b.id.includes("scapular") || b.id.includes("hammer")) ? 1 : 0;
+          return bUni - aUni;
+        });
+      } else if (currentWeek === 3) {
+        // Prioritize deloading & peak tension variations
+        prioritized.sort((a, b) => {
+          const aDeload = (a.id.includes("floor") || a.id.includes("straight_arm") || a.id.includes("goblet") || a.id.includes("stir")) ? 1 : 0;
+          const bDeload = (b.id.includes("floor") || b.id.includes("straight_arm") || b.id.includes("goblet") || b.id.includes("stir")) ? 1 : 0;
+          return bDeload - aDeload;
+        });
+      }
+
+      // If user hit shuffle, apply deterministic rotation based on shuffle seed
+      if (activeShuffleSeed > 0) {
+        const shift = activeShuffleSeed % prioritized.length;
+        prioritized = prioritized.slice(shift).concat(prioritized.slice(0, shift));
+      }
+
+      let limit = 5;
+      if (currentDuration === 30) limit = 3;
+      else if (currentDuration === 45) limit = 5;
+      else if (currentDuration === 60) limit = 6;
+      else if (currentDuration === 75) limit = 7;
+
+      let result = prioritized.slice(0, limit);
+
+      // Append any custom added exercises for today's session
+      const customAddedIds = addedExercisesToday[dayKey] || [];
+      customAddedIds.forEach(id => {
+        if (!result.some(e => e.id === id)) {
+          const found = exerciseDatabase.find(e => e.id === id);
+          if (found && !removedForDay.includes(id)) {
+            result.push(found);
+          }
+        }
+      });
+
+      return result;
+    }
+
+    // Render Main Exercises
+    function renderExercises() {
+      const container = document.getElementById("exerciseContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const exercises = getActiveExercisesForSplit(currentDay);
+      const countBadge = document.getElementById("exerciseCountBadge");
+      if (countBadge) countBadge.textContent = `${exercises.length} Lifts`;
+
+      // Update the Add Split Exercise button label to reflect current day
+      const addSplitBtnLabel = document.getElementById("addSplitBtnLabel");
+      if (addSplitBtnLabel) {
+        const dayTitle = currentDay === "push" ? "Push" : (currentDay === "pull" ? "Pull" : "Lower");
+        addSplitBtnLabel.textContent = `+ Add ${dayTitle} Exercise`;
+      }
+
+      if (exercises.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-slate-400 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-2xl"></i>
+            <p class="text-sm font-semibold text-slate-200">No exercises match your currently enabled gear.</p>
+            <p class="text-xs">Tap <strong class="text-blue-400">Gear</strong> in the top bar to enable PowerBlocks, Barbell, or Pulley attachments.</p>
+          </div>
+        `;
+        return;
+      }
+
+      exercises.forEach((ex, exIndex) => {
+        const card = document.createElement("div");
+        card.className = "bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-sm space-y-3.5 transition hover:border-slate-700/80";
+
+        const gearBadges = ex.equipment.map(g => `<span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700 font-medium">${userEquipment[g]?.name.split(' ')[0] || g}</span>`).join(" ");
+
+        const dayLog = savedWorkouts[currentDay] || {};
+        const prevBest = lastLiftedHistory[ex.id] || null;
+
+        const defaultWeight = prevBest ? prevBest.weight : "";
+        const defaultReps = prevBest ? prevBest.reps : (ex.defaultReps.split('-')[0] || "10");
+
+        if (!dayLog[ex.id]) {
+          dayLog[ex.id] = [
+            { set: 1, weight: defaultWeight, reps: defaultReps, done: false },
+            { set: 2, weight: defaultWeight, reps: defaultReps, done: false },
+            { set: 3, weight: defaultWeight, reps: defaultReps, done: false }
+          ];
+          if (!savedWorkouts[currentDay]) savedWorkouts[currentDay] = {};
+          savedWorkouts[currentDay][ex.id] = dayLog[ex.id];
+        }
+
+        const exLog = dayLog[ex.id];
+
+        let setRowsHtml = "";
+        exLog.forEach((row, sIdx) => {
+          const displayWeight = (row.weight !== undefined && row.weight !== "") ? row.weight : defaultWeight;
+          const displayReps = (row.reps !== undefined && row.reps !== "") ? row.reps : defaultReps;
+          const isDone = row.done;
+
+          // Use solid 100% opaque background colors to completely conceal anything underneath
+          const rowBgClass = isDone 
+            ? "bg-[#064e3b] border border-emerald-500 text-emerald-100 shadow-sm" 
+            : "bg-[#0f172a] border border-slate-800 hover:border-slate-700 text-slate-200";
+
+          setRowsHtml += `
+            <div class="relative overflow-hidden rounded-xl mb-1.5 last:mb-0 swipe-set-container bg-slate-900" data-ex="${ex.id}" data-set="${sIdx}">
+              <!-- Swipe Delete Underlay (Hidden at 0 opacity until user actually swipes left) -->
+              <div class="swipe-delete-bg absolute inset-0 bg-red-600 flex items-center justify-end px-4 text-white text-xs font-bold rounded-xl pointer-events-none opacity-0 transition-opacity duration-150 z-0">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-trash-can"></i> Delete</span>
+              </div>
+
+              <!-- Swipeable Foreground Row (Solid opaque surface on top z-10) -->
+              <div class="swipe-row relative z-10 flex items-center justify-between text-xs py-2 px-2.5 rounded-xl transition-transform duration-100 ${rowBgClass}"
+                data-ex="${ex.id}" data-set="${sIdx}">
+                
+                <div class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-grip-lines text-slate-500 text-[10px] cursor-grab"></i>
+                  <span class="font-bold w-10 ${isDone ? 'text-emerald-200' : 'text-slate-400'}">Set ${sIdx + 1}</span>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                  <input type="number" placeholder="${prevBest?.weight || 'lbs'}" value="${displayWeight}" 
+                    class="w-16 px-2 py-1 rounded-lg ${isDone ? 'bg-[#022c22] border-emerald-500 text-white font-black' : 'bg-slate-800 border-slate-700 text-white font-bold'} border text-center text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none set-weight-input"
+                    data-ex="${ex.id}" data-set="${sIdx}">
+                  <span class="text-[10px] ${isDone ? 'text-emerald-300 font-semibold' : 'text-slate-500'}">lbs</span>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                  <input type="text" value="${displayReps}" 
+                    class="w-14 px-2 py-1 rounded-lg ${isDone ? 'bg-[#022c22] border-emerald-500 text-white font-black' : 'bg-slate-800 border-slate-700 text-white font-bold'} border text-center text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none set-reps-input"
+                    data-ex="${ex.id}" data-set="${sIdx}">
+                  <span class="text-[10px] ${isDone ? 'text-emerald-300 font-semibold' : 'text-slate-500'}">reps</span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button class="w-8 h-8 rounded-lg flex items-center justify-center font-bold transition set-check-btn ${isDone ? 'bg-emerald-400 text-slate-950 ring-2 ring-emerald-300 shadow-md shadow-emerald-500/30' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'}"
+                    data-ex="${ex.id}" data-set="${sIdx}" data-exname="${ex.name}">
+                    <i class="fa-solid fa-check text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        const prevPerformanceBadge = prevBest 
+          ? `<span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-bolt mr-1"></i>Last: ${prevBest.weight ? prevBest.weight + ' lbs' : 'BW'} × ${prevBest.reps} reps</span>` 
+          : `<span class="text-[10px] text-slate-500">First time logging</span>`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">${exIndex + 1}</span>
+                <h3 class="font-bold text-white text-sm tracking-tight">${ex.name}</h3>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                ${gearBadges}
+                <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-semibold">${ex.primaryMuscle}</span>
+                ${prevPerformanceBadge}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button class="open-video-btn px-2 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition"
+                data-id="${ex.id}" title="Watch Technique Demo & Muscle Diagram">
+                <i class="fa-brands fa-youtube"></i> Form
+              </button>
+              <button class="open-swap-btn px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 transition"
+                data-id="${ex.id}" title="Swap for muscle-matched alternative">
+                <i class="fa-solid fa-repeat text-amber-400 text-[11px]"></i> Swap
+              </button>
+              <button class="delete-exercise-btn px-2 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 border border-red-800/50 text-xs font-semibold flex items-center gap-1 transition"
+                data-id="${ex.id}" title="Remove this exercise from today's workout">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-2.5 space-y-1.5">
+            <div class="flex items-center justify-between text-xs font-semibold">
+              <span class="text-amber-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-bullseye text-xs"></i> Feel it in: <strong class="text-slate-200 font-bold">${ex.plainPrimary || ex.targetMuscles}</strong>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed font-normal">${ex.feelIt}</p>
+          </div>
+
+          <div class="rounded-lg bg-emerald-950/30 border border-emerald-800/40 px-2.5 py-1.5 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400 text-[11px] flex-shrink-0"></i>
+            <span class="text-[11px] text-emerald-300 font-medium truncate">${ex.shoulderSafety}</span>
+          </div>
+
+          <div class="space-y-1 pt-1 bg-slate-800/30 rounded-xl p-2.5 border border-slate-800/60">
+            <div class="flex items-center justify-between text-[11px] font-semibold text-slate-400 px-1 pb-1">
+              <span>TARGET: ${exLog.length} Sets × ${ex.defaultReps} Reps</span>
+              <span class="text-[10px] text-slate-500">Rest: 45s</span>
+            </div>
+            
+            <div class="space-y-1">
+              ${exLog.length > 0 ? setRowsHtml : `
+                <div class="p-3 text-center rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs text-slate-400">
+                  <span class="block text-slate-300 font-semibold mb-0.5">No sets logged</span>
+                  <span class="text-[11px] text-slate-500">Tap below to add a set for this exercise</span>
+                </div>
+              `}
+            </div>
+
+            <!-- Add Set Button -->
+            <div class="pt-2 flex justify-between items-center border-t border-slate-800/60 mt-1">
+              <button class="add-set-btn text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-slate-800/60 transition"
+                data-ex="${ex.id}">
+                <i class="fa-solid fa-circle-plus text-xs"></i> Add Set
+              </button>
+              <span class="text-[10px] text-slate-500">Swipe left to remove set</span>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // Bind Swipe-To-Delete Gestures (Touch + Mouse Drag)
+      bindSwipeToDeleteListeners();
+
+      // Bind Delete Exercise button
+      document.querySelectorAll(".delete-exercise-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const exId = btn.dataset.id;
+          removeExerciseFromToday(exId);
+        });
+      });
+
+      // Weight change handler with forward cascade
+      document.querySelectorAll(".set-weight-input").forEach(inp => {
+        inp.addEventListener("change", (e) => {
+          const exId = e.target.dataset.ex;
+          const setIdx = parseInt(e.target.dataset.set);
+          updateSetData(exId, setIdx, 'weight', e.target.value);
+        });
+      });
+
+      // Reps change handler with forward cascade
+      document.querySelectorAll(".set-reps-input").forEach(inp => {
+        inp.addEventListener("change", (e) => {
+          const exId = e.target.dataset.ex;
+          const setIdx = parseInt(e.target.dataset.set);
+          updateSetData(exId, setIdx, 'reps', e.target.value);
+        });
+      });
+
+      // Add Set handler
+      document.querySelectorAll(".add-set-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const exId = btn.dataset.ex;
+          addSetToExercise(exId);
+        });
+      });
+
+      document.querySelectorAll(".set-check-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          initToneAudio();
+          if (!isSessionRunning && sessionElapsedSeconds === 0) {
+            startSessionTimer();
+          }
+          const exId = btn.dataset.ex;
+          const setIdx = parseInt(btn.dataset.set);
+          const exName = btn.dataset.exname;
+
+          toggleSetDone(exId, setIdx, exName);
+        });
+      });
+
+      document.querySelectorAll(".open-video-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const exercise = exerciseDatabase.find(e => e.id === btn.dataset.id);
+          if (exercise) openVideoModal(exercise);
+        });
+      });
+
+      document.querySelectorAll(".open-swap-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const exercise = exerciseDatabase.find(e => e.id === btn.dataset.id);
+          if (exercise) openSwapModal(exercise);
+        });
+      });
+    }
+
+    // Touch & Drag Swipe-to-Delete Implementation
+    function bindSwipeToDeleteListeners() {
+      const rows = document.querySelectorAll(".swipe-row");
+
+      rows.forEach(row => {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        let hasMoved = false;
+        const exId = row.dataset.ex;
+        const setIdx = parseInt(row.dataset.set);
+        const container = row.closest(".swipe-set-container");
+        const deleteBg = container ? container.querySelector(".swipe-delete-bg") : null;
+
+        // Touch event handlers
+        row.addEventListener("touchstart", (e) => {
+          // If tapping inside an input or button, do not initiate swipe gesture
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+            isDragging = false;
+            return;
+          }
+          startX = e.touches[0].clientX;
+          currentX = startX;
+          isDragging = true;
+          hasMoved = false;
+          row.style.transition = "none";
+        }, { passive: true });
+
+        row.addEventListener("touchmove", (e) => {
+          if (!isDragging) return;
+          currentX = e.touches[0].clientX;
+          const diff = currentX - startX;
+          
+          // Only permit swiping to the left with actual movement
+          if (diff < -8) {
+            hasMoved = true;
+            const clampDiff = Math.max(diff, -140);
+            row.style.transform = `translateX(${clampDiff}px)`;
+            if (deleteBg) {
+              deleteBg.style.opacity = Math.min(Math.abs(clampDiff) / 60, 1).toString();
+            }
+          }
+        }, { passive: true });
+
+        row.addEventListener("touchend", () => {
+          if (!isDragging) return;
+          isDragging = false;
+          row.style.transition = "transform 0.25s ease-out";
+          const diff = currentX - startX;
+
+          // Only delete if user deliberately dragged left past -85px threshold
+          if (hasMoved && diff < -85) {
+            row.style.transform = "translateX(-100%)";
+            if (deleteBg) deleteBg.style.opacity = "1";
+            setTimeout(() => {
+              deleteSetFromExercise(exId, setIdx);
+            }, 200);
+          } else {
+            // Snap back cleanly if it was just a tap or minor drag
+            row.style.transform = "translateX(0px)";
+            if (deleteBg) {
+              deleteBg.style.opacity = "0";
+            }
+          }
+          startX = 0;
+          currentX = 0;
+          hasMoved = false;
+        });
+
+        // Desktop mouse drag support
+        row.addEventListener("mousedown", (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+          startX = e.clientX;
+          currentX = startX;
+          isDragging = true;
+          hasMoved = false;
+          row.style.transition = "none";
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          currentX = e.clientX;
+          const diff = currentX - startX;
+          if (diff < -8) {
+            hasMoved = true;
+            const clampDiff = Math.max(diff, -140);
+            row.style.transform = `translateX(${clampDiff}px)`;
+            if (deleteBg) {
+              deleteBg.style.opacity = Math.min(Math.abs(clampDiff) / 60, 1).toString();
+            }
+          }
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (!isDragging) return;
+          isDragging = false;
+          row.style.transition = "transform 0.25s ease-out";
+          const diff = currentX - startX;
+
+          if (hasMoved && diff < -85) {
+            row.style.transform = "translateX(-100%)";
+            if (deleteBg) deleteBg.style.opacity = "1";
+            setTimeout(() => {
+              deleteSetFromExercise(exId, setIdx);
+            }, 200);
+          } else {
+            row.style.transform = "translateX(0px)";
+            if (deleteBg) {
+              deleteBg.style.opacity = "0";
+            }
+          }
+          startX = 0;
+          currentX = 0;
+          hasMoved = false;
+        });
+      });
+    }
+
+    function addSetToExercise(exId) {
+      if (!savedWorkouts[currentDay]) savedWorkouts[currentDay] = {};
+      if (!savedWorkouts[currentDay][exId]) {
+        savedWorkouts[currentDay][exId] = [];
+      }
+      const sets = savedWorkouts[currentDay][exId];
+      const prevSet = sets.length > 0 ? sets[sets.length - 1] : null;
+      const prevBest = lastLiftedHistory[exId] || null;
+      const exMeta = exerciseDatabase.find(e => e.id === exId);
+
+      const newWeight = prevSet ? prevSet.weight : (prevBest ? prevBest.weight : "");
+      const newReps = prevSet ? prevSet.reps : (prevBest ? prevBest.reps : (exMeta?.defaultReps.split('-')[0] || "10"));
+
+      sets.push({
+        set: sets.length + 1,
+        weight: newWeight,
+        reps: newReps,
+        done: false
+      });
+
+      saveLog();
+      renderExercises();
+    }
+
+    function deleteSetFromExercise(exId, setIndex) {
+      if (!savedWorkouts[currentDay] || !savedWorkouts[currentDay][exId]) return;
+      const sets = savedWorkouts[currentDay][exId];
+      sets.splice(setIndex, 1);
+      sets.forEach((s, idx) => s.set = idx + 1);
+
+      saveLog();
+      renderExercises();
+    }
+
+    function removeExerciseFromToday(exId) {
+      if (!removedExercisesToday[currentDay]) {
+        removedExercisesToday[currentDay] = [];
+      }
+      if (!removedExercisesToday[currentDay].includes(exId)) {
+        removedExercisesToday[currentDay].push(exId);
+        localStorage.setItem("fitcraft_removed_today", JSON.stringify(removedExercisesToday));
+      }
+      // Also remove from added list if it was a dynamically added exercise
+      if (addedExercisesToday[currentDay]) {
+        addedExercisesToday[currentDay] = addedExercisesToday[currentDay].filter(id => id !== exId);
+        localStorage.setItem("fitcraft_added_today", JSON.stringify(addedExercisesToday));
+      }
+      if (savedWorkouts[currentDay] && savedWorkouts[currentDay][exId]) {
+        delete savedWorkouts[currentDay][exId];
+        saveLog();
+      }
+      renderExercises();
+      startRestTimer(3, "Exercise removed from today's session");
+    }
+
+    function openAddExerciseModal(mode = "split") {
+      const modal = document.getElementById("addExerciseModal");
+      const listContainer = document.getElementById("addExerciseListContainer");
+      const titleEl = document.getElementById("addExerciseModalTitle");
+      const subtitleEl = document.getElementById("addExerciseModalSubtitle");
+      if (!modal || !listContainer) return;
+
+      listContainer.innerHTML = "";
+      const currentActiveList = getActiveExercisesForSplit(currentDay);
+      const activeIds = currentActiveList.map(e => e.id);
+
+      let availableCandidates = [];
+
+      if (mode === "split") {
+        titleEl.innerHTML = `<i class="fa-solid fa-plus-circle text-blue-400"></i> Add ${currentDay.toUpperCase()} Exercise`;
+        subtitleEl.textContent = `Choose an additional lift matching today's muscle targets`;
+        availableCandidates = exerciseDatabase.filter(cand => {
+          if (cand.day !== currentDay) return false;
+          if (activeIds.includes(cand.id)) return false;
+          return cand.equipment.every(reqGear => userEquipment[reqGear]?.enabled);
+        });
+      } else {
+        // Mode: Core
+        titleEl.innerHTML = `<i class="fa-solid fa-shield-heart text-amber-400"></i> Add Core & Abdominal Exercise`;
+        subtitleEl.textContent = `Target waistline, obliques, and deep abdominal stability`;
+        availableCandidates = exerciseDatabase.filter(cand => {
+          if (cand.category !== "core") return false;
+          if (activeIds.includes(cand.id)) return false;
+          return cand.equipment.every(reqGear => userEquipment[reqGear]?.enabled);
+        });
+      }
+
+      if (availableCandidates.length === 0) {
+        listContainer.innerHTML = `
+          <div class="p-6 text-center text-slate-400 space-y-2">
+            <i class="fa-solid fa-check-circle text-emerald-400 text-2xl"></i>
+            <p class="text-xs font-semibold text-slate-200">All available ${mode === "split" ? currentDay : "core"} exercises are already in your session or require gear currently disabled.</p>
+          </div>
+        `;
+        modal.classList.remove("hidden");
+        return;
+      }
+
+      availableCandidates.forEach(cand => {
+        const item = document.createElement("div");
+        item.className = "p-3 rounded-xl bg-slate-800/80 border border-slate-700/80 hover:border-slate-600 transition flex items-center justify-between gap-3";
+
+        const gearBadges = cand.equipment.map(g => `<span class="text-[9px] bg-slate-700/60 text-slate-300 px-1.5 py-0.2 rounded border border-slate-600">${userEquipment[g]?.name.split(' ')[0] || g}</span>`).join(" ");
+
+        item.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h4 class="text-xs font-bold text-white">${cand.name}</h4>
+              <span class="text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.2 rounded font-semibold">${cand.primaryMuscle}</span>
+            </div>
+            <div class="flex items-center gap-1 pt-0.5">${gearBadges}</div>
+            <p class="text-[10px] text-slate-300">${cand.feelIt}</p>
+          </div>
+          <button class="add-candidate-btn px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex-shrink-0 transition"
+            data-id="${cand.id}">
+            + Add
+          </button>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      document.querySelectorAll(".add-candidate-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const exId = btn.dataset.id;
+          appendExerciseToToday(exId);
+          modal.classList.add("hidden");
+        });
+      });
+
+      modal.classList.remove("hidden");
+    }
+
+    function appendExerciseToToday(exId) {
+      if (!addedExercisesToday[currentDay]) {
+        addedExercisesToday[currentDay] = [];
+      }
+      if (!addedExercisesToday[currentDay].includes(exId)) {
+        addedExercisesToday[currentDay].push(exId);
+        localStorage.setItem("fitcraft_added_today", JSON.stringify(addedExercisesToday));
+      }
+      // If it was in removed list, un-remove it
+      if (removedExercisesToday[currentDay]) {
+        removedExercisesToday[currentDay] = removedExercisesToday[currentDay].filter(id => id !== exId);
+        localStorage.setItem("fitcraft_removed_today", JSON.stringify(removedExercisesToday));
+      }
+      renderExercises();
+      startRestTimer(3, "Added to today's workout!");
+    }
+
+    function updateSetData(exId, setIndex, field, value) {
+      if (!savedWorkouts[currentDay]) savedWorkouts[currentDay] = {};
+      if (!savedWorkouts[currentDay][exId]) {
+        savedWorkouts[currentDay][exId] = [
+          { set: 1, weight: "", reps: "10", done: false },
+          { set: 2, weight: "", reps: "10", done: false },
+          { set: 3, weight: "", reps: "10", done: false }
+        ];
+      }
+      
+      const sets = savedWorkouts[currentDay][exId];
+      sets[setIndex][field] = value;
+
+      // Cascading update: if adjusting Set 1 or an earlier set, update remaining uncompleted sets
+      for (let i = setIndex + 1; i < sets.length; i++) {
+        if (!sets[i].done) {
+          sets[i][field] = value;
+        }
+      }
+      
+      if (value) {
+        if (!lastLiftedHistory[exId]) lastLiftedHistory[exId] = {};
+        if (field === 'weight') lastLiftedHistory[exId].weight = value;
+        if (field === 'reps') lastLiftedHistory[exId].reps = value;
+        lastLiftedHistory[exId].date = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      }
+
+      saveLog();
+      renderExercises();
+    }
+
+    function toggleSetDone(exId, setIndex, exName) {
+      if (!savedWorkouts[currentDay]) savedWorkouts[currentDay] = {};
+      
+      const prevBest = lastLiftedHistory[exId] || null;
+      const exMeta = exerciseDatabase.find(e => e.id === exId);
+      const defWeight = prevBest ? prevBest.weight : "";
+      const defReps = prevBest ? prevBest.reps : (exMeta?.defaultReps.split('-')[0] || "10");
+
+      if (!savedWorkouts[currentDay][exId]) {
+        savedWorkouts[currentDay][exId] = [
+          { set: 1, weight: defWeight, reps: defReps, done: false },
+          { set: 2, weight: defWeight, reps: defReps, done: false },
+          { set: 3, weight: defWeight, reps: defReps, done: false }
+        ];
+      }
+
+      const currentState = savedWorkouts[currentDay][exId][setIndex].done;
+      savedWorkouts[currentDay][exId][setIndex].done = !currentState;
+
+      if (!currentState) {
+        const row = savedWorkouts[currentDay][exId][setIndex];
+        const loggedWeight = (row.weight !== undefined && row.weight !== "") ? row.weight : defWeight;
+        const loggedReps = (row.reps !== undefined && row.reps !== "") ? row.reps : defReps;
+        
+        row.weight = loggedWeight;
+        row.reps = loggedReps;
+
+        lastLiftedHistory[exId] = {
+          weight: loggedWeight,
+          reps: loggedReps,
+          date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        };
+      }
+
+      saveLog();
+      renderExercises();
+
+      if (!currentState) {
+        startRestTimer(45, `${exName} - Set ${setIndex + 1} Done!`);
+      }
+    }
+
+    // Cardio Suite Controller & Calorie Estimator
+    function calculateCardioCalories() {
+      const time = parseFloat(document.getElementById("cardioTimeInput")?.value) || 0;
+      const type = cardioLog.type || "walk";
+      const userWeightKg = 194 * 0.453592; // 88 kg
+      let met = 3.8; // default brisk walk
+
+      if (type === "walk") {
+        const incline = parseFloat(document.getElementById("cardioInclineInput")?.value) || 0;
+        met = 3.5 + (incline * 0.3);
+      } else if (type === "run") {
+        met = 9.8; // moderate run
+      } else if (type === "bike") {
+        const resistance = parseFloat(document.getElementById("cardioResistanceInput")?.value) || 5;
+        met = 5.5 + (resistance * 0.4);
+      }
+
+      const calories = Math.round((met * 3.5 * userWeightKg / 200) * time);
+      const kcalElem = document.getElementById("cardioKcalEst");
+      if (kcalElem) kcalElem.textContent = calories > 0 ? calories : 0;
+      return calories;
+    }
+
+    function initCardioSuite() {
+      const walkBtn = document.getElementById("cardioTypeWalk");
+      const runBtn = document.getElementById("cardioTypeRun");
+      const bikeBtn = document.getElementById("cardioTypeBike");
+      const inclineGroup = document.getElementById("inclineGroup");
+      const resistanceGroup = document.getElementById("resistanceGroup");
+      const cardioCheck = document.getElementById("cardioCheck");
+      const timeInput = document.getElementById("cardioTimeInput");
+      const distInput = document.getElementById("cardioDistInput");
+      const inclineInput = document.getElementById("cardioInclineInput");
+      const resInput = document.getElementById("cardioResistanceInput");
+      const badgeStatus = document.getElementById("warmupBadgeStatus");
+
+      function setCardioType(type) {
+        cardioLog.type = type;
+        const activeClass = "py-1.5 rounded-lg text-xs font-semibold border border-blue-500 bg-blue-600 text-white flex items-center justify-center gap-1.5 transition";
+        const inactiveClass = "py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 flex items-center justify-center gap-1.5 hover:bg-slate-700 transition";
+
+        if (walkBtn) walkBtn.className = type === "walk" ? activeClass : inactiveClass;
+        if (runBtn) runBtn.className = type === "run" ? activeClass : inactiveClass;
+        if (bikeBtn) bikeBtn.className = type === "bike" ? activeClass : inactiveClass;
+
+        if (type === "bike") {
+          inclineGroup?.classList.add("hidden");
+          resistanceGroup?.classList.remove("hidden");
+        } else {
+          inclineGroup?.classList.remove("hidden");
+          resistanceGroup?.classList.add("hidden");
+        }
+
+        calculateCardioCalories();
+        saveCardioData();
+      }
+
+      function saveCardioData() {
+        cardioLog.time = parseFloat(timeInput?.value) || 10;
+        cardioLog.distance = parseFloat(distInput?.value) || 0;
+        cardioLog.incline = parseFloat(inclineInput?.value) || 0;
+        cardioLog.resistance = parseFloat(resInput?.value) || 0;
+        cardioLog.completed = cardioCheck?.checked || false;
+        localStorage.setItem("fitcraft_cardio", JSON.stringify(cardioLog));
+
+        if (badgeStatus) {
+          if (cardioLog.completed) {
+            badgeStatus.textContent = "Cardio Done";
+            badgeStatus.className = "text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-semibold";
+          } else {
+            badgeStatus.textContent = "Ready";
+            badgeStatus.className = "text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.2 rounded font-semibold";
+          }
+        }
+      }
+
+      walkBtn?.addEventListener("click", () => setCardioType("walk"));
+      runBtn?.addEventListener("click", () => setCardioType("run"));
+      bikeBtn?.addEventListener("click", () => setCardioType("bike"));
+
+      [timeInput, distInput, inclineInput, resInput].forEach(inp => {
+        inp?.addEventListener("input", () => {
+          calculateCardioCalories();
+          saveCardioData();
+        });
+      });
+
+      cardioCheck?.addEventListener("change", () => {
+        saveCardioData();
+      });
+
+      // Restore saved state
+      if (cardioLog) {
+        if (timeInput) timeInput.value = cardioLog.time || 10;
+        if (distInput && cardioLog.distance) distInput.value = cardioLog.distance;
+        if (inclineInput && cardioLog.incline) inclineInput.value = cardioLog.incline;
+        if (resInput && cardioLog.resistance) resInput.value = cardioLog.resistance;
+        if (cardioCheck) cardioCheck.checked = !!cardioLog.completed;
+        setCardioType(cardioLog.type || "walk");
+      }
+    }
+
+    // Dynamic Muscle Diagram Visualizer (Front & Back Human Body SVG)
+    function generateMuscleSvg(primaryKey, secondaryKeys = []) {
+      const isPri = (k) => k === primaryKey;
+      const isSec = (k) => secondaryKeys.includes(k);
+
+      const getColor = (k) => {
+        if (isPri(k)) return "#f43f5e"; // rose-500 (Primary)
+        if (isSec(k)) return "#f59e0b"; // amber-500 (Secondary)
+        return "#334155"; // slate-700 (Inactive)
+      };
+
+      const getGlow = (k) => {
+        if (isPri(k)) return 'filter="url(#glowPri)"';
+        if (isSec(k)) return 'filter="url(#glowSec)"';
+        return "";
+      };
+
+      return `
+        <svg viewBox="0 0 320 220" class="w-full max-w-xs h-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glowPri" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#f43f5e" flood-opacity="0.8"/>
+            </filter>
+            <filter id="glowSec" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#f59e0b" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+
+          <!-- FRONT BODY (Left side of diagram) -->
+          <g transform="translate(10, 10)">
+            <text x="70" y="12" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">FRONT VIEW</text>
+            
+            <!-- Head & Neck -->
+            <ellipse cx="70" cy="30" rx="10" ry="12" fill="#1e293b" stroke="#475569" stroke-width="1.2"/>
+            <path d="M 66 42 L 66 48 L 74 48 L 74 42 Z" fill="#1e293b"/>
+            
+            <!-- Shoulders / Front Delts -->
+            <path d="M 44 50 C 40 55 42 66 48 70 L 52 56 Z" fill="${getColor('front_delts') !== '#334155' ? getColor('front_delts') : getColor('delts')}" ${getGlow('delts')}/>
+            <path d="M 96 50 C 100 55 98 66 92 70 L 88 56 Z" fill="${getColor('front_delts') !== '#334155' ? getColor('front_delts') : getColor('delts')}" ${getGlow('delts')}/>
+
+            <!-- Chest (Pectorals) -->
+            <path d="M 54 53 C 60 51 68 52 70 55 C 72 52 80 51 86 53 C 89 62 82 72 70 73 C 58 72 51 62 54 53 Z" fill="${getColor('chest')}" ${getGlow('chest')}/>
+
+            <!-- Biceps / Arms -->
+            <path d="M 42 70 C 38 78 40 88 44 95 L 48 93 C 45 84 45 76 48 70 Z" fill="${getColor('biceps')}" ${getGlow('biceps')}/>
+            <path d="M 98 70 C 102 78 100 88 96 95 L 92 93 C 95 84 95 76 92 70 Z" fill="${getColor('biceps')}" ${getGlow('biceps')}/>
+            <!-- Forearms -->
+            <path d="M 43 96 L 38 122 L 44 124 L 47 96 Z" fill="${getColor('forearms')}"/>
+            <path d="M 97 96 L 102 122 L 96 124 L 93 96 Z" fill="${getColor('forearms')}"/>
+
+            <!-- Abdominals / Core -->
+            <path d="M 58 75 L 82 75 C 80 94 82 108 78 114 L 62 114 C 58 108 60 94 58 75 Z" fill="${getColor('core')}" ${getGlow('core')}/>
+
+            <!-- Pelvis -->
+            <path d="M 58 115 L 82 115 L 77 126 L 63 126 Z" fill="#1e293b"/>
+
+            <!-- Quadriceps (Front Thighs) -->
+            <path d="M 52 127 C 50 148 53 170 56 182 L 67 182 C 67 165 67 146 64 127 Z" fill="${getColor('quads')}" ${getGlow('quads')}/>
+            <path d="M 88 127 C 90 148 87 170 84 182 L 73 182 C 73 165 73 146 76 127 Z" fill="${getColor('quads')}" ${getGlow('quads')}/>
+
+            <!-- Knees & Calves -->
+            <rect x="55" y="184" width="10" height="26" rx="4" fill="#334155"/>
+            <rect x="75" y="184" width="10" height="26" rx="4" fill="#334155"/>
+          </g>
+
+          <line x1="160" y1="20" x2="160" y2="205" stroke="#334155" stroke-dasharray="3,3"/>
+
+          <!-- BACK BODY (Right side of diagram) -->
+          <g transform="translate(160, 10)">
+            <text x="70" y="12" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">BACK VIEW</text>
+
+            <!-- Head & Neck -->
+            <ellipse cx="70" cy="30" rx="10" ry="12" fill="#1e293b" stroke="#475569" stroke-width="1.2"/>
+            <path d="M 66 42 L 66 48 L 74 48 L 74 42 Z" fill="#1e293b"/>
+
+            <!-- Traps & Upper Spine -->
+            <path d="M 64 45 L 76 45 L 82 56 L 70 66 L 58 56 Z" fill="${getColor('traps') !== '#334155' ? getColor('traps') : getColor('upper_back')}" ${getGlow('upper_back')}/>
+
+            <!-- Rear Shoulders (Rear Delts) -->
+            <path d="M 44 50 C 40 55 42 66 48 70 L 53 58 Z" fill="${getColor('rear_delts') !== '#334155' ? getColor('rear_delts') : getColor('delts')}" ${getGlow('rear_delts')}/>
+            <path d="M 96 50 C 100 55 98 66 92 70 L 87 58 Z" fill="${getColor('rear_delts') !== '#334155' ? getColor('rear_delts') : getColor('delts')}" ${getGlow('rear_delts')}/>
+
+            <!-- Lats (Wings of Back) -->
+            <path d="M 56 62 C 52 74 54 88 59 98 L 81 98 C 86 88 88 74 84 62 L 70 70 Z" fill="${getColor('lats')}" ${getGlow('lats')}/>
+
+            <!-- Triceps (Back of arms) -->
+            <path d="M 42 70 C 39 78 40 88 44 95 L 48 93 C 46 84 46 76 49 70 Z" fill="${getColor('triceps')}" ${getGlow('triceps')}/>
+            <path d="M 98 70 C 101 78 100 88 96 95 L 92 93 C 94 84 94 76 91 70 Z" fill="${getColor('triceps')}" ${getGlow('triceps')}/>
+            <!-- Forearms -->
+            <path d="M 43 96 L 38 122 L 44 124 L 47 96 Z" fill="${getColor('forearms')}"/>
+            <path d="M 97 96 L 102 122 L 96 124 L 93 96 Z" fill="${getColor('forearms')}"/>
+
+            <!-- Lower Back -->
+            <path d="M 61 99 L 79 99 L 77 114 L 63 114 Z" fill="${getColor('lower_back')}"/>
+
+            <!-- Glutes (Buttocks) -->
+            <path d="M 52 115 C 50 128 55 138 67 138 C 69 138 70 128 70 115 Z" fill="${getColor('glutes')}" ${getGlow('glutes')}/>
+            <path d="M 88 115 C 90 128 85 138 73 138 C 71 138 70 128 70 115 Z" fill="${getColor('glutes')}" ${getGlow('glutes')}/>
+
+            <!-- Hamstrings (Back of Thighs) -->
+            <path d="M 53 140 C 51 156 53 170 56 182 L 67 182 C 67 168 68 154 67 140 Z" fill="${getColor('hamstrings')}" ${getGlow('hamstrings')}/>
+            <path d="M 87 140 C 89 156 87 170 84 182 L 73 182 C 73 168 72 154 73 140 Z" fill="${getColor('hamstrings')}" ${getGlow('hamstrings')}/>
+
+            <!-- Calves -->
+            <rect x="55" y="184" width="10" height="26" rx="4" fill="${getColor('calves')}"/>
+            <rect x="75" y="184" width="10" height="26" rx="4" fill="${getColor('calves')}"/>
+          </g>
+        </svg>
+      `;
+    }
+
+    function openVideoModal(ex) {
+      document.getElementById("videoModalTitle").textContent = ex.name;
+      document.getElementById("videoPromptHeading").textContent = `${ex.name} Demonstration`;
+      document.getElementById("modalMusclesFelt").textContent = ex.feelIt || ex.targetMuscles;
+      document.getElementById("modalShoulderCue").textContent = ex.shoulderSafety;
+
+      // Render Visual Muscle Map
+      const svgContainer = document.getElementById("muscleDiagramSvgContainer");
+      if (svgContainer) {
+        svgContainer.innerHTML = generateMuscleSvg(ex.primarySvgKey || "chest", ex.secondarySvgKey || []);
+      }
+
+      const pPlain = document.getElementById("primaryMusclePlain");
+      const sPlain = document.getElementById("secondaryMusclePlain");
+      if (pPlain) pPlain.textContent = ex.plainPrimary || ex.primaryMuscle || "Main Muscle";
+      if (sPlain) sPlain.textContent = ex.plainSecondary || "Assisting Muscles";
+
+      const listContainer = document.getElementById("modalStepList");
+      listContainer.innerHTML = "";
+      if (ex.formChecklist && ex.formChecklist.length > 0) {
+        ex.formChecklist.forEach(step => {
+          const li = document.createElement("li");
+          li.textContent = step;
+          listContainer.appendChild(li);
+        });
+      } else {
+        listContainer.innerHTML = "<li>Maintain smooth tempo and controlled breathing.</li><li>Zero sharp joint pain.</li>";
+      }
+
+      const queryParam = encodeURIComponent(ex.youtubeQuery || `${ex.name} proper form bodybuilding`);
+      document.getElementById("directYoutubeLink").href = `https://www.youtube.com/results?search_query=${queryParam}`;
+      document.getElementById("searchYoutubeLink").href = `https://www.google.com/search?q=${queryParam}&tbm=vid`;
+
+      document.getElementById("videoModal").classList.remove("hidden");
+    }
+
+    function openSwapModal(targetEx) {
+      const modal = document.getElementById("swapModal");
+      const listContainer = document.getElementById("swapListContainer");
+      listContainer.innerHTML = "";
+
+      const alternatives = exerciseDatabase.filter(cand => {
+        if (cand.id === targetEx.id) return false;
+        if (cand.day !== targetEx.day) return false;
+        return cand.equipment.every(reqGear => userEquipment[reqGear]?.enabled);
+      });
+
+      if (alternatives.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-slate-400 p-4 text-center">No matching alternatives found with your currently enabled gear.</p>`;
+        modal.classList.remove("hidden");
+        return;
+      }
+
+      alternatives.sort((a, b) => {
+        const aExact = a.category === targetEx.category ? 2 : (a.primaryMuscle === targetEx.primaryMuscle ? 1 : 0);
+        const bExact = b.category === targetEx.category ? 2 : (b.primaryMuscle === targetEx.primaryMuscle ? 1 : 0);
+        return bExact - aExact;
+      });
+
+      alternatives.forEach(alt => {
+        const item = document.createElement("div");
+        item.className = "p-3 rounded-xl bg-slate-800/80 border border-slate-700/80 hover:border-slate-600 transition flex items-center justify-between gap-3";
+
+        const isExactCat = alt.category === targetEx.category;
+        const matchBadge = isExactCat 
+          ? `<span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold uppercase"><i class="fa-solid fa-check-double mr-1"></i>Direct Match</span>`
+          : `<span class="text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.2 rounded font-semibold uppercase">Target Match</span>`;
+
+        item.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <h4 class="text-xs font-bold text-white">${alt.name}</h4>
+              ${matchBadge}
+            </div>
+            <p class="text-[10px] text-slate-300">${alt.shoulderSafety}</p>
+          </div>
+          <button class="swap-choose-btn px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex-shrink-0 transition"
+            data-target="${targetEx.id}" data-replacement="${alt.id}">
+            Select
+          </button>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      document.querySelectorAll(".swap-choose-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.dataset.target;
+          const replId = btn.dataset.replacement;
+          executeExerciseSwap(targetId, replId);
+          modal.classList.add("hidden");
+        });
+      });
+
+      modal.classList.remove("hidden");
+    }
+
+    function executeExerciseSwap(oldId, newId) {
+      const oldIdx = exerciseDatabase.findIndex(e => e.id === oldId);
+      const newIdx = exerciseDatabase.findIndex(e => e.id === newId);
+
+      if (oldIdx !== -1 && newIdx !== -1) {
+        const temp = exerciseDatabase[oldIdx];
+        exerciseDatabase[oldIdx] = exerciseDatabase[newIdx];
+        exerciseDatabase[newIdx] = temp;
+      }
+
+      renderExercises();
+    }
+
+    // Warm-up & Mobility List Rendering
+    function renderWarmupList() {
+      const container = document.getElementById("mobilityList");
+      if (!container) return;
+      container.innerHTML = "";
+
+      shoulderPrepExercises.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between text-xs";
+        div.innerHTML = `
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold flex items-center justify-center">${idx + 1}</span>
+              <span class="font-bold text-white text-xs">${item.name}</span>
+            </div>
+            <p class="text-[11px] text-slate-300 pl-5">${item.cue}</p>
+            <span class="text-[10px] text-amber-400/90 pl-5 font-medium block">Dose: ${item.reps}</span>
+          </div>
+          <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(item.youtubeQuery)}" target="_blank" class="px-2 py-1 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white border border-red-500/30 text-[10px] font-semibold flex items-center gap-1 transition">
+            <i class="fa-brands fa-youtube"></i> Demo
+          </a>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Equipment Manager
+    function renderGearList() {
+      const container = document.getElementById("gearListContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      Object.keys(userEquipment).forEach(key => {
+        const item = userEquipment[key];
+        const row = document.createElement("div");
+        row.className = "p-3 rounded-xl bg-slate-800/70 border border-slate-700/80 flex items-center justify-between text-xs";
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg ${item.enabled ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-700 text-slate-400'} flex items-center justify-center text-sm">
+              <i class="${item.icon}"></i>
+            </div>
+            <div>
+              <span class="font-bold text-white text-xs block">${item.name}</span>
+              <span class="text-[10px] ${item.enabled ? 'text-emerald-400' : 'text-slate-400'}">${item.enabled ? 'Included in workouts' : 'Excluded'}</span>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" data-gear="${key}" class="sr-only peer gear-checkbox" ${item.enabled ? 'checked' : ''}>
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        `;
+        container.appendChild(row);
+      });
+
+      document.querySelectorAll(".gear-checkbox").forEach(chk => {
+        chk.addEventListener("change", (e) => {
+          const gKey = e.target.dataset.gear;
+          userEquipment[gKey].enabled = e.target.checked;
+        });
+      });
+    }
+
+    // History & Finish Workout Flow
+    function finishActiveWorkout() {
+      const dayLog = savedWorkouts[currentDay] || {};
+      const activeExs = getActiveExercisesForSplit(currentDay);
+      let completedExercises = [];
+      let totalSetsDone = 0;
+
+      activeExs.forEach(ex => {
+        const sets = dayLog[ex.id] || [];
+        const doneSets = sets.filter(s => s.done);
+        if (doneSets.length > 0) {
+          totalSetsDone += doneSets.length;
+          completedExercises.push({
+            name: ex.name,
+            sets: doneSets.map(s => `${s.weight ? s.weight + ' lbs' : 'BW'} × ${s.reps}`)
+          });
+        }
+      });
+
+      if (completedExercises.length === 0 && (!cardioLog || !cardioLog.completed)) {
+        startRestTimer(5, "Tip: Check off completed sets before finishing!");
+        return;
+      }
+
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      const formattedTime = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+      const durationRecorded = sessionElapsedSeconds > 0 
+        ? formatDurationReadable(sessionElapsedSeconds)
+        : `${currentDuration}m (Planned)`;
+
+      // Gather Cardio Summary
+      let cardioSummary = null;
+      if (cardioLog && cardioLog.completed) {
+        cardioSummary = {
+          type: cardioLog.type.toUpperCase(),
+          time: `${cardioLog.time || 10} min`,
+          details: cardioLog.type === "bike" 
+            ? `${cardioLog.distance || 0} mi (Lvl ${cardioLog.resistance || 5})` 
+            : `${cardioLog.distance || 0} mi (${cardioLog.incline || 0}% inc)`,
+          calories: `${calculateCardioCalories()} kcal`
+        };
+      }
+
+      workoutHistory.unshift({
+        id: "session_" + Date.now(),
+        date: formattedDate,
+        time: formattedTime,
+        dayType: currentDay.toUpperCase(),
+        duration: durationRecorded,
+        totalSets: totalSetsDone,
+        cardio: cardioSummary,
+        exercises: completedExercises
+      });
+
+      // Reset removed and added exercises for this split so next session starts fresh
+      delete savedWorkouts[currentDay];
+      delete removedExercisesToday[currentDay];
+      delete addedExercisesToday[currentDay];
+      localStorage.setItem("fitcraft_removed_today", JSON.stringify(removedExercisesToday));
+      localStorage.setItem("fitcraft_added_today", JSON.stringify(addedExercisesToday));
+
+      resetSessionTimer();
+      saveLog();
+      saveHistory();
+      renderExercises();
+      renderHistoryModal();
+      document.getElementById("historyModal").classList.remove("hidden");
+    }
+
+    function renderHistoryModal() {
+      const container = document.getElementById("historyListContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (workoutHistory.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-slate-400 space-y-2">
+            <i class="fa-solid fa-clock-rotate-left text-2xl text-slate-500"></i>
+            <p class="text-sm font-semibold text-slate-300">No archived workouts yet</p>
+            <p class="text-xs">Complete a workout and tap the green <strong class="text-emerald-400">Finish</strong> button in the top bar to archive your session logs.</p>
+          </div>
+        `;
+        return;
+      }
+
+      workoutHistory.forEach(session => {
+        const card = document.createElement("div");
+        card.className = "p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-2.5";
+
+        let exListHtml = "";
+        session.exercises.forEach(ex => {
+          exListHtml += `
+            <div class="text-xs">
+              <span class="font-bold text-white">${ex.name}</span>
+              <div class="text-[11px] text-slate-300 pl-2">
+                ${ex.sets.join(" • ")}
+              </div>
+            </div>
+          `;
+        });
+
+        let cardioHtml = "";
+        if (session.cardio) {
+          cardioHtml = `
+            <div class="p-2 rounded-lg bg-blue-950/40 border border-blue-800/40 text-xs flex items-center justify-between text-blue-200">
+              <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-person-running"></i> ${session.cardio.type} Warm-Up: ${session.cardio.time}</span>
+              <span class="text-[11px] text-blue-300">${session.cardio.details} • ${session.cardio.calories}</span>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+            <div>
+              <span class="text-xs font-bold text-white">${session.dayType} Day</span>
+              <span class="text-[11px] text-slate-400 ml-2">${session.date} at ${session.time}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                <i class="fa-regular fa-clock text-[9px]"></i> ${session.duration || 'Session'}
+              </span>
+              <span class="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full font-semibold">
+                ${session.totalSets} Sets
+              </span>
+            </div>
+          </div>
+          ${cardioHtml}
+          <div class="space-y-1.5 pt-1">
+            ${exListHtml}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Event Listeners & Initialization
+    function setupEventListeners() {
+      // Split Tabs
+      document.querySelectorAll(".day-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentDay = btn.dataset.day;
+          document.querySelectorAll(".day-tab-btn").forEach(b => {
+            b.className = "day-tab-btn py-2.5 px-2 rounded-xl text-xs font-bold text-center border transition border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700";
+          });
+          btn.className = "day-tab-btn py-2.5 px-2 rounded-xl text-xs font-bold text-center border transition border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-600/20";
+          renderExercises();
+        });
+      });
+
+      // Weekly Periodization Tabs
+      document.querySelectorAll(".week-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentWeek = parseInt(btn.dataset.week);
+          localStorage.setItem("fitcraft_current_week", currentWeek);
+
+          document.querySelectorAll(".week-tab-btn").forEach(b => {
+            b.className = "week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+          });
+          btn.className = "week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-blue-500 bg-blue-600 text-white transition";
+
+          const tag = document.getElementById("weekVariantTag");
+          if (tag) {
+            if (currentWeek === 1) {
+              tag.textContent = "Phase A • Heavy Compounds & Cables";
+            } else if (currentWeek === 2) {
+              tag.textContent = "Phase B • Unilateral Balance & Hypertrophy";
+            } else {
+              tag.textContent = "Phase C • Joint-Deload & Peak Definition";
+            }
+          }
+
+          renderExercises();
+        });
+      });
+
+      // Instant Shuffle Variations Button
+      document.getElementById("shuffleWorkoutBtn")?.addEventListener("click", () => {
+        activeShuffleSeed = (activeShuffleSeed + 1) % 10;
+        localStorage.setItem("fitcraft_shuffle_seed", activeShuffleSeed);
+        renderExercises();
+        startRestTimer(3, "Generated fresh workout variations!");
+      });
+
+      // Target Duration Selector
+      document.querySelectorAll(".time-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentDuration = parseInt(btn.dataset.mins);
+          document.querySelectorAll(".time-btn").forEach(b => {
+            b.className = "time-btn py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+          });
+          btn.className = "time-btn py-1.5 rounded-lg text-xs font-semibold border border-amber-500 bg-amber-500/20 text-amber-300 transition";
+
+          const badge = document.getElementById("durationBadge");
+          const sub = document.getElementById("durationSubtext");
+          if (badge) badge.textContent = `${currentDuration} Minutes`;
+          if (sub) {
+            if (currentDuration === 30) sub.textContent = "3 Exercises • Fast & Intense";
+            else if (currentDuration === 45) sub.textContent = "5 Exercises • High Metabolic Burn";
+            else if (currentDuration === 60) sub.textContent = "6 Exercises • Complete Full Split";
+            else sub.textContent = "7 Exercises • Maximum Volume";
+          }
+
+          renderExercises();
+        });
+      });
+
+      // Warm-up Accordion Toggle
+      const toggleWarmup = document.getElementById("toggleWarmupBtn");
+      const warmupContent = document.getElementById("warmupContent");
+      const chevron = document.getElementById("warmupChevron");
+      toggleWarmup?.addEventListener("click", () => {
+        warmupContent?.classList.toggle("hidden");
+        chevron?.classList.toggle("rotate-180");
+      });
+
+      // Session Timer Controls
+      document.getElementById("startSessionBtn")?.addEventListener("click", () => {
+        initToneAudio();
+        startSessionTimer();
+      });
+
+      document.getElementById("pauseSessionBtn")?.addEventListener("click", () => {
+        pauseSessionTimer();
+      });
+
+      // Rest Bar Controls
+      document.getElementById("addRest15Btn")?.addEventListener("click", () => {
+        restRemaining += 15;
+        totalRestTime += 15;
+        const numberElem = document.getElementById("restTimerNumber");
+        if (numberElem) numberElem.textContent = restRemaining;
+      });
+
+      document.getElementById("skipRestBtn")?.addEventListener("click", () => {
+        if (restTimerInterval) clearInterval(restTimerInterval);
+        restRemaining = 0;
+        const numberElem = document.getElementById("restTimerNumber");
+        const statusElem = document.getElementById("restTimerStatus");
+        const circleElem = document.getElementById("restTimerCircle");
+        if (numberElem) numberElem.textContent = "00";
+        if (statusElem) statusElem.textContent = "Rest Skipped";
+        if (circleElem) circleElem.style.strokeDashoffset = "113";
+      });
+
+      // Gear Modal Handlers
+      document.getElementById("gearModalBtn")?.addEventListener("click", () => {
+        renderGearList();
+        document.getElementById("gearModal")?.classList.remove("hidden");
+      });
+
+      document.getElementById("closeGearModalBtn")?.addEventListener("click", () => {
+        document.getElementById("gearModal")?.classList.add("hidden");
+      });
+
+      document.getElementById("saveGearBtn")?.addEventListener("click", () => {
+        localStorage.setItem("fitcraft_gear", JSON.stringify(userEquipment));
+        document.getElementById("gearModal")?.classList.add("hidden");
+        renderExercises();
+      });
+
+      // Video Modal Handlers
+      document.getElementById("closeVideoModalBtn")?.addEventListener("click", () => {
+        document.getElementById("videoModal")?.classList.add("hidden");
+      });
+      document.getElementById("closeVideoModalBtn2")?.addEventListener("click", () => {
+        document.getElementById("videoModal")?.classList.add("hidden");
+      });
+
+      // Swap Modal Handler
+      document.getElementById("closeSwapModalBtn")?.addEventListener("click", () => {
+        document.getElementById("swapModal")?.classList.add("hidden");
+      });
+
+      // Add Exercise Modal Handlers
+      document.getElementById("addSplitExerciseBtn")?.addEventListener("click", () => {
+        openAddExerciseModal("split");
+      });
+
+      document.getElementById("addCoreExerciseBtn")?.addEventListener("click", () => {
+        openAddExerciseModal("core");
+      });
+
+      document.getElementById("closeAddExerciseModalBtn")?.addEventListener("click", () => {
+        document.getElementById("addExerciseModal")?.classList.add("hidden");
+      });
+
+      // History Modal Handlers
+      document.getElementById("historyBtn")?.addEventListener("click", () => {
+        renderHistoryModal();
+        document.getElementById("historyModal")?.classList.remove("hidden");
+      });
+
+      document.getElementById("closeHistoryModalBtn")?.addEventListener("click", () => {
+        document.getElementById("historyModal")?.classList.add("hidden");
+      });
+
+      document.getElementById("finishWorkoutBtn")?.addEventListener("click", () => {
+        finishActiveWorkout();
+      });
+
+      document.getElementById("resetWorkoutBtn")?.addEventListener("click", () => {
+        if (savedWorkouts[currentDay]) {
+          delete savedWorkouts[currentDay];
+        }
+        if (removedExercisesToday[currentDay]) {
+          delete removedExercisesToday[currentDay];
+          localStorage.setItem("fitcraft_removed_today", JSON.stringify(removedExercisesToday));
+        }
+        if (addedExercisesToday[currentDay]) {
+          delete addedExercisesToday[currentDay];
+          localStorage.setItem("fitcraft_added_today", JSON.stringify(addedExercisesToday));
+        }
+        saveLog();
+        renderExercises();
+        startRestTimer(3, "Reset today's workout to full routine");
+      });
+
+      // Manual Past Workout Adding
+      const addManualBtn = document.getElementById("addManualWorkoutBtn");
+      const manualForm = document.getElementById("manualWorkoutForm");
+      const cancelManualBtn = document.getElementById("cancelManualBtn");
+      const saveManualBtn = document.getElementById("saveManualBtn");
+
+      addManualBtn?.addEventListener("click", () => {
+        manualForm?.classList.toggle("hidden");
+      });
+
+      cancelManualBtn?.addEventListener("click", () => {
+        manualForm?.classList.add("hidden");
+      });
+
+      saveManualBtn?.addEventListener("click", () => {
+        const dateVal = document.getElementById("manualDateInput")?.value || "Earlier Workout";
+        const dayVal = document.getElementById("manualDayInput")?.value || "PUSH";
+        const detailsVal = document.getElementById("manualDetailsInput")?.value || "";
+
+        if (!detailsVal.trim()) return;
+
+        workoutHistory.unshift({
+          id: "manual_" + Date.now(),
+          date: dateVal,
+          time: "Recorded",
+          dayType: dayVal,
+          duration: "45m (Logged)",
+          totalSets: "Manual Entry",
+          exercises: [{ name: "Logged Summary", sets: [detailsVal] }]
+        });
+
+        saveHistory();
+        renderHistoryModal();
+        manualForm?.classList.add("hidden");
+      });
+    }
+
+    // On Load
+    window.addEventListener("DOMContentLoaded", () => {
+      setupEventListeners();
+      renderWarmupList();
+      initCardioSuite();
+
+      // Restore active week button UI
+      document.querySelectorAll(".week-tab-btn").forEach(b => {
+        if (parseInt(b.dataset.week) === currentWeek) {
+          b.className = "week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-blue-500 bg-blue-600 text-white transition";
+        } else {
+          b.className = "week-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+        }
+      });
+      const tag = document.getElementById("weekVariantTag");
+      if (tag) {
+        if (currentWeek === 1) tag.textContent = "Phase A • Heavy Compounds & Cables";
+        else if (currentWeek === 2) tag.textContent = "Phase B • Unilateral Balance & Hypertrophy";
+        else tag.textContent = "Phase C • Joint-Deload & Peak Definition";
+      }
+
+      renderExercises();
+      updateSessionTimerUI();
+      if (isSessionRunning) {
+        startSessionTimer();
+      }
+    });
+  </script>
+</body>
+</html>
